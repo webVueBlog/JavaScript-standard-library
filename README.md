@@ -1,4 +1,6 @@
-# 《前端进阶 JavaScript 标准库》 - 前端进阶必看的JavaScript 标准库
+# 《前端进阶 JavaScript 标准库》 
+
+前端进阶必看的JavaScript 标准库
 
 <img width="300px" src="https://user-images.githubusercontent.com/59645426/187019807-7785b3c9-9931-4bca-a28f-5e508a4c9839.jpg"/>
 
