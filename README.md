@@ -2,7 +2,162 @@
 
 前端进阶必看的JavaScript 标准库
 
+https://webvueblog.github.io/JavaScript-standard-library/
+
 <img width="300px" src="https://user-images.githubusercontent.com/59645426/187019807-7785b3c9-9931-4bca-a28f-5e508a4c9839.jpg"/>
+
+## JavaScript 标准内置对象
+
+这里的术语"全局对象"（或标准内置对象）不应与global 对象混淆。这里的"全局对象"指的是处在全局作用域里的多个对象。
+
+global 对象可以在全局作用域里通过使用this访问到（但只有在 ECMAScript 5 的非严格模式下才可以，在严格模式下得到的是 undefined）。其实全局作用域包含全局对象中的属性，包括它可能继承来的属性。
+
+全局作用域中的其他对象则可由用户的脚本创建，或由宿主程序提供。浏览器环境中所提供的宿主对象的说明可以在这里找到：API 参考。
+
+## 标准内置对象分类
+
+### 值属性
+
+这些全局属性返回一个简单值，这些值没有自己的属性和方法。
+
+- Infinity
+- NaN
+- undefined
+- globalThis
+
+### 函数属性
+
+全局函数可以直接调用，不需要在调用时指定所属对象，执行结束后会将结果直接返回给调用者。
+
+- eval()
+- uneval()
+- isFinite()
+- isNaN()
+- parseFloat()
+- parseInt()
+- decodeURI()
+- decodeURIComponent()
+- encodeURI()
+- encodeURIComponent()
+
+### 基本对象
+
+顾名思义，基本对象是定义或使用其他对象的基础。基本对象包括一般对象、函数对象和错误对象。
+
+- Object
+- Function
+- Boolean
+- Symbol
+
+### 错误对象
+
+错误对象是一种特殊的基本对象。它们拥有基本的 Error 类型，同时也有多种具体的错误类型。
+
+- Error
+- AggregateError
+- EvalError
+- InternalError
+- RangeError
+- ReferenceError
+- SyntaxError
+- TypeError
+- URIError
+
+### 数字和日期对象
+
+用来表示数字、日期和执行数学计算的对象。
+
+- Number
+- BigInt
+- Math
+- Date
+
+### 字符串
+
+用来表示和操作字符串的对象。
+
+- String
+- RegExp
+
+### 可索引的集合对象
+
+这些对象表示按照索引值来排序的数据集合，包括数组和类型数组，以及类数组结构的对象。
+
+- Array
+- Int8Array
+- Uint8Array
+- Uint8ClampedArray
+- Int16Array
+- Uint16Array
+- Int32Array
+- Uint32Array
+- Float32Array
+- Float64Array
+- BigInt64Array
+- BigUint64Array
+
+### 使用键的集合对象
+
+这些集合对象在存储数据时会使用到键，包括可迭代的Map 和 Set，支持按照插入顺序来迭代元素。
+
+- Map
+- Set
+- WeakMap
+- WeakSet
+
+### 结构化数据
+
+这些对象用来表示和操作结构化的缓冲区数据，或使用 JSON（JavaScript Object Notation）编码的数据。
+
+- ArrayBuffer
+- SharedArrayBuffer
+- Atomics
+- DataView
+- JSON
+
+### 控制抽象对象
+
+控件抽象可以帮助构造代码，尤其是异步代码（例如，不使用深度嵌套的回调）。
+
+- Promise
+- Generator
+- GeneratorFunction
+- AsyncFunction
+
+### 反射
+
+- Reflect
+- Proxy
+
+### 国际化
+
+ECMAScript 核心的附加功能，用于支持多语言处理。
+
+- Intl
+- Intl.Collator
+- Intl.DateTimeFormat
+- Intl.ListFormat
+- Intl.NumberFormat
+- Intl.PluralRules
+- Intl.RelativeTimeFormat
+- Intl.Locale
+
+### WebAssembly- 
+
+- WebAssembly
+- WebAssembly.Module
+- WebAssembly.Instance
+- WebAssembly.Memory
+- WebAssembly.Table
+- WebAssembly.CompileError
+- WebAssembly.LinkError (en-US)
+- WebAssembly.RuntimeError
+
+### 其他
+
+- arguments
+
+<hr>
 
 ## Object
 
@@ -11,6 +166,127 @@ Object 是 JavaScript 的一种 数据类型 。它用于存储各种键值集�
 ### 描述
 
 在 JavaScript 中，几乎所有的对象都是 Object 类型的实例，它们都会从 Object.prototype 继承属性和方法，虽然大部分属性都会被覆盖（shadowed）或者说被重写了（overridden）。 除此之外，Object 还可以被故意的创建，但是这个对象并不是一个“真正的对象”（例如：通过 Object.create(null)），或者通过一些手段改变对象，使其不再是一个“真正的对象”（比如说：Object.setPrototypeOf）。
+
+通过原型链，所有的 object 都能观察到 Object 原型对象（Object prototype object）的改变，除非这些受到改变影响的属性和方法沿着原型链被进一步的重写。尽管有潜在的危险，但这为覆盖或扩展对象的行为提供了一个非常强大的机制。
+
+Object 构造函数为给定的参数创建一个包装类对象（object wrapper），具体有以下情况：
+
+- 如果给定值是 null 或 undefined，将会创建并返回一个空对象
+- 如果传进去的是一个基本类型的值，则会构造其包装类型的对象
+- 如果传进去的是引用类型的值，仍然会返回这个值，经他们复制的变量保有和源对象相同的引用地址
+
+当以非构造函数形式被调用时，Object 的行为等同于 new Object()。
+
+### 从一个对象上删除一个属性
+
+Object 自身没有提供方法删除其自身属性（Map 中的 Map.prototype.delete() 可以删除自身属性）为了删除对象上的属性，必须使用 delete 操作符
+
+### 构造函数
+
+Object()
+
+创建一个新的 Object 对象。该对象将会包裹（wrapper）传入的参数
+
+### 静态方法
+
+Object.assign()
+通过复制一个或多个对象来创建一个新的对象。
+
+Object.create()
+使用指定的原型对象和属性创建一个新对象。
+
+Object.defineProperty()
+给对象添加一个属性并指定该属性的配置。
+
+Object.defineProperties()
+给对象添加多个属性并分别指定它们的配置。
+
+Object.entries()
+返回给定对象自身可枚举属性的 [key, value] 数组。
+
+Object.freeze()
+冻结对象：其他代码不能删除或更改任何属性。
+
+Object.getOwnPropertyDescriptor()
+返回对象指定的属性配置。
+
+Object.getOwnPropertyNames()
+返回一个数组，它包含了指定对象所有的可枚举或不可枚举的属性名。
+
+Object.getOwnPropertySymbols()
+返回一个数组，它包含了指定对象自身所有的符号属性。
+
+Object.getPrototypeOf()
+返回指定对象的原型对象。
+
+Object.is()
+比较两个值是否相同。所有 NaN 值都相等（这与==和===不同）。
+
+Object.isExtensible()
+判断对象是否可扩展。
+
+Object.isFrozen()
+判断对象是否已经冻结。
+
+Object.isSealed()
+判断对象是否已经密封。
+
+Object.keys()
+返回一个包含所有给定对象自身可枚举属性名称的数组。
+
+Object.preventExtensions()
+防止对象的任何扩展。
+
+Object.seal()
+防止其他代码删除对象的属性。
+
+Object.setPrototypeOf()
+设置对象的原型（即内部 [[Prototype]] 属性）。
+
+Object.values()
+返回给定对象自身可枚举值的数组。
+
+### 实例属性
+
+Object.prototype.constructor
+一个引用值，指向 Object 构造函数
+
+Object.prototype.__proto__
+指向一个对象，当一个 object 实例化时，使用该对象作为实例化对象的原型
+
+### 实例方法
+
+Object.prototype.__defineGetter__()
+将一个属性与一个函数相关联，当该属性被访问时，执行该函数，并且返回函数的返回值。
+
+Object.prototype.__defineSetter__()
+将一个属性与一个函数相关联，当该属性被设置时，执行该函数，执行该函数去修改某个属性。
+
+Object.prototype.__lookupGetter__()
+返回一个函数，该函数通过给定属性的 Object.prototype.__defineGetter__() 得出。
+
+Object.prototype.__lookupSetter__()
+返回一个函数，该函数通过给定属性的 Object.prototype.__defineSetter__() 得出。
+
+Object.prototype.hasOwnProperty()
+返回一个布尔值，用于表示一个对象自身是否包含指定的属性，该方法并不会查找原型链上继承来的属性。
+
+Object.prototype.isPrototypeOf()
+返回一个布尔值，用于表示该方法所调用的对象是否在指定对象的原型链中。
+
+Object.prototype.propertyIsEnumerable()
+返回一个布尔值，用于表示内部属性 ECMAScript [[Enumerable]] attribute 是否被设置。
+
+Object.prototype.toLocaleString()
+调用 toString()。
+
+Object.prototype.toString()
+返回一个代表该对象的字符串。
+
+Object.prototype.valueOf()
+返回指定对象的原始值。
+
+<hr>
 
 ## Array
 
@@ -889,14 +1165,340 @@ users
 
 上面代码中，先产生一个所有 Email 地址组成的数组，然后再过滤出以t开头的 Email 地址，最后将它打印出来。
 
+## Array
 
+与其他编程语言中的数组一样，Array 对象支持在单个变量名下存储多个元素，并具有执行常见数组操作的成员。
 
+### 描述
 
+在 JavaScript 中，数组不是基本类型，而是具有以下核心特征的 Array 对象：
 
+- JavaScript 数组是可调整大小的，并且可以包含不同的数据类型。（当不需要这些特征时，可以使用类型化数组。）
+- JavaScript 数组不是关联数组，因此，不能使用任意字符串作为索引访问数组元素，但必须使用非负整数（或它们各自的字符串形式）作为索引访问。
+- JavaScript 数组的索引从 0 开始：数组的第一个元素在索引 0 处，第二个在索引 1 处，以此类推，最后一个元素是数组的 length 属性减去 1 的值。
+- JavaScript 数组复制操作创建浅拷贝。（所有 JavaScript 对象的标准内置复制操作都会创建浅拷贝，而不是深拷贝）。
 
+### 数组下标
 
+Array 对象不能使用任意字符串作为元素索引（如关联数组），必须使用非负整数（或它们的字符串形式）。通过非整数设置或访问不会设置或从数组列表本身检索元素， 但会设置或访问与该数组的对象属性集合相关的变量。数组的对象属性和数组元素列表是分开的，数组的遍历和修改操作不能应用于这些命名属性。
 
+数组元素是对象属性，就像 toString 是属性一样（具体来说，toString() 是一种方法）。然而，尝试按以下方式访问数组的元素会抛出语法错误，因为属性名无效：
 
+`console.log(arr.0); // a syntax error`
+
+JavaScript 语法要求使用方括号表示法而不是点号表示法来访问以数字开头的属性。也可以用引号包裹数组下标（例如，years['2'] 而不是 years[2]），尽管通常没有必要。
+
+JavaScript 引擎通过隐式的 toString，将 years[2] 中的 2 强制转换为字符串。因此，'2' 和 '02' 将指向 years 对象上的两个不同的槽位，下面的例子可能是 true：
+
+`console.log(years['2'] !== years['02']);`
+
+只有 years['2'] 是一个实际的数组索引。years['02'] 是一个在数组迭代中不会被访问的任意字符串属性。
+
+### 数组方法和空槽
+
+稀疏数组中的空槽在数组方法之间的行为不一致。通常，旧方法会跳过空槽，而新方法将它们视为 undefined。
+
+在遍历多个元素的方法中，下面的方法在访问索引之前执行 in 检查，并且不将空槽与 undefined 合并：
+
+- concat()
+- copyWithin()
+- every()
+- filter()
+- flat()
+- flatMap()
+- forEach()
+- indexOf()
+- lastIndexOf()
+- map()
+- reduce()
+- reduceRight()
+- reverse()
+- slice()
+- some()
+- sort()
+- splice()
+
+这些方法将空槽视为 undefined：
+
+- entries()
+- fill()
+- find()
+- findIndex()
+- findLast()
+- findLastIndex()
+- group()
+- groupToMap()
+- includes()
+- join()
+- keys()
+- toLocaleString()
+- values()
+
+### 复制方法和修改方法
+
+有些方法不改变调用该方法的现有数组，而是返回一个新数组。它们首先访问 this.constructor[Symbol.species] 来确定用于新数组的构造函数。然后用元素填充新构造的数组。复制总是触发浅拷贝——该方法从不复制初始创建数组以外的任何内容。原数组的元素按如下方式复制到新数组中：
+
+- 对象：对象引用被复制到新数组中。原数组和新数组都引用同一个对象。也就是说，如果一个被引用的对象被修改，新数组和原数组都可以看到更改。
+- 基本类型，如字符串，数字和布尔值（不是 String、Number 和 Boolean 对象）：它们的值被复制到新数组中。
+
+其他方法会改变调用该方法的数组，在这种情况下，它们的返回值根据方法的不同而不同：有时是对相同数组的引用，有时是新数组的长度。
+
+以下方法使用 @@species 创建新数组：
+
+- concat()
+- filter()
+- flat()
+- flatMap()
+- map()
+- slice()
+- splice() (构造返回的已删除元素数组）
+
+注意，group() (en-US) 和 groupToMap() (en-US) 不使用 @@species 为每个组条目创建新数组，而是始终使用普通的 Array 构造函数。从概念上讲，它们也不是复制方法。
+
+以下方法可以对原数组进行修改：
+
+- copyWithin()
+- fill()
+- pop()
+- push()
+- reverse()
+- shift()
+- sort()
+- splice()
+- unshift()
+
+### 通用数组方法
+
+数组方法总是通用的——它们不访问数组对象的任何内部数据。它们只通过 length 属性和索引访问数组元素。这意味着它们也可以在类数组对象上调用。
+
+```
+const arrayLike = {
+  0: "a",
+  1: "b",
+  length: 2,
+};
+console.log(Array.prototype.join.call(arrayLike, "+")); // 'a+b'
+```
+
+### 长度属性的规范化
+
+length 属性被转换为一个数字，被截断为一个整数，然后固定为 0 到 253 - 1 之间的范围。NaN 变成 0，所以即使 length 没有出现或 undefined，它也会表现得好像它的值是 0。
+
+`Array.prototype.flat.call({}); // []`
+
+一些数组方法会设置数组对象的 length 属性。它们总是在规范化后设置值，因此 length 总是以整数结尾。
+
+```
+const a = { length: 0.7 };
+Array.prototype.push.call(a);
+console.log(a.length); // 0
+```
+
+### 类数组对象
+
+术语类数组对象指的是在上面描述的 length 转换过程中不抛出的任何对象。在实践中，这样的对象应该实际具有 length 属性，并且索引元素的范围在 0 到 length - 1 之间。（如果它没有所有的索引，它将在功能上等同于稀疏数组。）
+
+许多 DOM 对象都是类数组对象——例如 NodeList 和 HTMLCollection。arguments 对象也是类数组对象。你可以在它们上调用数组方法，即使它们本身没有这些方法。
+
+```
+function f() {
+  console.log(Array.prototype.join.call(arguments, "+"));
+}
+
+f("a", "b"); // 'a+b'
+```
+
+### 构造函数
+
+Array()
+
+创建一个新的 Array 对象。
+
+### 静态属性
+
+get Array[@@species]
+
+返回 Array 构造函数。
+
+### 静态方法
+
+`Array.from()`
+从数组类对象或可迭代对象创建一个新的 Array 实例。
+
+`Array.isArray()`
+如果参数是数组则返回 true ，否则返回 false 。
+
+`Array.of()`
+创建一个新的 Array 实例，具有可变数量的参数，而不管参数的数量或类型。
+
+### 实例属性
+
+`Array.prototype.length`
+反映数组中元素的数量。
+
+`Array.prototype[@@unscopables]`
+包含 ES2015 版本之前 ECMAScript 标准中没有包含的属性名，在使用 with 绑定语句时会被忽略。
+
+### 实例方法
+
+Array.prototype.at()
+返回给定索引处的数组元素。接受从最后一项往回计算的负整数。
+
+Array.prototype.concat()
+返回一个新数组，该数组由被调用的数组与其它数组或值连接形成。
+
+Array.prototype.copyWithin()
+在数组内复制数组元素序列。
+
+Array.prototype.entries()
+返回一个新的数组迭代器对象，其中包含数组中每个索引的键/值对。
+
+Array.prototype.every()
+如果调用数组中的每个元素都满足测试函数，则返回 true。
+
+Array.prototype.fill()
+用静态值填充数组中从开始索引到结束索引的所有元素。
+
+Array.prototype.filter()
+返回一个新数组，其中包含调用所提供的筛选函数返回为 true 的所有数组元素。
+
+Array.prototype.find()
+返回数组中满足提供的测试函数的第一个元素的值，如果没有找到合适的元素，则返回 undefined。
+
+Array.prototype.findIndex()
+返回数组中满足提供的测试函数的第一个元素的索引，如果没有找到合适的元素，则返回 -1。
+
+Array.prototype.findLast()
+返回数组中满足提供的测试函数的最后一个元素的值，如果没有找到合适的元素，则返回 undefined。
+
+Array.prototype.findLastIndex()
+返回数组中满足所提供测试函数的最后一个元素的索引，如果没有找到合适的元素，则返回 -1。
+
+Array.prototype.flat()
+返回一个新数组，所有子数组元素递归地连接到其中，直到指定的深度。
+
+Array.prototype.flatMap()
+对调用数组的每个元素调用给定的回调函数，然后将结果平展一层，返回一个新数组。
+
+Array.prototype.forEach()
+对调用数组中的每个元素调用函数。
+
+Array.prototype.group() (en-US) 实验性
+根据测试函数返回的字符串，将数组的元素分组到一个对象中。
+
+Array.prototype.groupToMap() (en-US) 实验性
+根据测试函数返回的值，将数组的元素分组到 Map 中。
+
+Array.prototype.includes()
+确定调用数组是否包含一个值，根据情况返回 true 或 false。
+
+Array.prototype.indexOf()
+返回在调用数组中可以找到给定元素的第一个（最小）索引。
+
+Array.prototype.join()
+将数组的所有元素连接为字符串。
+
+Array.prototype.keys()
+返回一个新的数组迭代器，其中包含调用数组中每个索引的键。
+
+Array.prototype.lastIndexOf()
+返回在调用数组中可以找到给定元素的最后一个（最大）索引，如果找不到则返回 -1。
+
+Array.prototype.map()
+返回一个新数组，其中包含对调用数组中的每个元素调用函数的结果。
+
+Array.prototype.pop()
+从数组中移除最后一个元素并返回该元素。
+
+Array.prototype.push()
+在数组末尾添加一个或多个元素，并返回数组新的 length。
+
+Array.prototype.reduce()
+对数组的每个元素（从左到右）执行用户提供的 “reducer” 回调函数，将其简化为单个值。
+
+Array.prototype.reduceRight()
+对数组的每个元素（从右到左）执行用户提供的 “reducer” 回调函数，将其简化为单个值。
+
+Array.prototype.reverse()
+反转数组中元素的顺序。（前面变成后面，后面变成前面。）
+
+Array.prototype.shift()
+从数组中移除第一个元素并返回该元素。
+
+Array.prototype.slice()
+提取调用数组的一部分并返回一个新数组。
+
+Array.prototype.some()
+如果调用数组中至少有一个元素满足提供的测试函数，则返回 true。
+
+Array.prototype.sort()
+对数组的元素进行排序并返回该数组。
+
+Array.prototype.splice()
+从数组中添加和/或删除元素。
+
+Array.prototype.toLocaleString()
+返回一个表示调用数组及其元素的本地化字符串。重写 Object.prototype.toLocaleString() 方法。
+
+Array.prototype.toString()
+返回一个表示调用数组及其元素的字符串。重写 Object.prototype.toString() 方法。
+
+Array.prototype.unshift()
+在数组的前面添加一个或多个元素，并返回数组新的 length。
+
+Array.prototype.values()
+返回一个新的数组迭代器对象，该对象包含数组中每个索引的值。
+
+Array.prototype[@@iterator]()
+默认情况下，该方法为 values() 方法的别名。
+
+### 遍历数组
+
+下面的例子使用 for...of 循环遍历 fruits 数组，将每一个元素打印到控制台。
+
+```
+const fruits = ['Apple', 'Mango', 'Cherry'];
+for (const fruit of fruits) {
+  console.log(fruit);
+}
+// Apple
+// Mango
+// Cherry
+```
+
+### 对数组中的每个元素调用函数
+
+下面的例子使用 forEach() 方法在 fruits 数组中的每个元素上调用一个函数；该函数将每个元素以及元素的索引号打印到控制台。
+
+```
+const fruits = ['Apple', 'Mango', 'Cherry'];
+fruits.forEach((item, index, array) => {
+  console.log(item, index);
+});
+// Apple 0
+// Mango 1
+// Cherry 2
+```
+
+### 复制数组
+
+下面的例子展示了从现有的 fruits 数组创建新数组的三种方法：首先使用展开语法，然后使用 from() 方法，然后使用 slice() 方法。
+
+```
+const fruits = ['Strawberry', 'Mango'];
+
+// Create a copy using spread syntax.
+const fruitsCopy = [...fruits];
+// ["Strawberry", "Mango"]
+
+// Create a copy using the from() method.
+const fruitsCopy2 = Array.from(fruits);
+// ["Strawberry", "Mango"]
+
+// Create a copy using the slice() method.
+const fruitsCopy3 = fruits.slice();
+// ["Strawberry", "Mango"]
+```
 
 
 
