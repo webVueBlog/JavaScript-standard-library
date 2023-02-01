@@ -157,6 +157,109 @@ ECMAScript 核心的附加功能，用于支持多语言处理。
 
 - arguments
 
+### 给定 undefined 和 null 类型使用 Object
+
+下面的例子将一个空的 Object 对象存到 o 中：
+
+```
+var o = new Object();
+
+var o = new Object(undefined);
+
+var o = new Object(null);
+```
+
+### 使用 Object 生成布尔对象
+
+下面的例子将Boolean 对象存到 o 中：
+
+```
+// 等价于 o = new Boolean(true);
+var o = new Object(true);
+
+// 等价于 o = new Boolean(false);
+var o = new Object(Boolean());
+```
+
+当我们要修改现有的 Object.prototype 方法时，请你考虑一下在已经存在的逻辑之前或者之后通过包装扩展代码的方式来注入代码。 比如说，有一段代码将会在执行内部逻辑或者是其他扩展之前，有条件的执行一段自定义的逻辑。
+
+当一个函数被调用时，调用的参数被保存在一个类似数组的“变量” arguments。 比如说：在调用 myFn(a, b, c) 时，myFunc 函数体中的 arguments 将会包含三个类似数组的元素，对应 (a, b , c)
+
+当使用钩子修改原型时，通过调用函数的apply()将此参数和参数(调用状态)传递给当前行为。此模式可用于任何原型，例如Node。原型,函数。原型等。
+
+## Object() 构造函数
+
+Object 构造函数将给定的值包装为一个新对象。
+
+- 如果给定的值是 null 或 undefined, 它会创建并返回一个空对象。
+- 否则，它将返回一个和给定的值相对应的类型的对象。
+- 如果给定值是一个已经存在的对象，则会返回这个已经存在的值（相同地址）。
+
+在非构造函数上下文中调用时， Object 和 new Object()表现一致。
+
+### 语法
+
+···
+new Object()
+new Object(value)
+···
+
+### 参数
+
+value
+
+任意值
+
+### Object.prototype.constructor
+
+constructor 属性返回 Object 的构造函数（用于创建实例对象）。注意，此属性的值是对函数本身的引用，而不是一个包含函数名称的字符串。
+
+原始类型的值是只读的，如：1、true 和 "test"。
+
+### 描述
+
+所有对象（使用 Object.create(null) 创建的对象除外）都将具有 constructor 属性。在没有显式使用构造函数的情况下，创建的对象（例如对象和数组文本）将具有 constructor 属性，这个属性指向该对象的基本对象构造函数类型。
+
+```
+const o = {}
+o.constructor === Object // true
+
+const o = new Object
+o.constructor === Object // true
+
+const a = []
+a.constructor === Array // true
+
+const a = new Array
+a.constructor === Array // true
+
+const n = new Number(3)
+n.constructor === Number // true
+```
+
+### 示例
+
+打印对象的构造函数
+
+下面这个示例创建一个构造函数（Tree），以及该类型的对象（theTree）。然后打印了 theTree 对象的 constructor 属性。
+
+```
+function Tree(name) {
+  this.name = name
+}
+
+const theTree = new Tree('Redwood')
+console.log('theTree.constructor is ' + theTree.constructor)
+```
+
+打印输出：
+
+```
+theTree.constructor is function Tree(name) {
+  this.name = name
+}
+```
+
 <hr>
 
 ## Object
