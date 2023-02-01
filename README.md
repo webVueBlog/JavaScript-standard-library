@@ -199,10 +199,10 @@ Object 构造函数将给定的值包装为一个新对象。
 
 ### 语法
 
-···
+```
 new Object()
 new Object(value)
-···
+```
 
 ### 参数
 
@@ -259,6 +259,454 @@ theTree.constructor is function Tree(name) {
   this.name = name
 }
 ```
+
+### Object.assign()
+
+Object.assign() 方法将所有可枚举（Object.propertyIsEnumerable() 返回 true）的自有（Object.hasOwnProperty() 返回 true）属性从一个或多个源对象复制到目标对象，返回修改后的对象。
+
+```
+const target = { a: 1, b: 2 };
+const source = { b: 4, c: 5 };
+
+const returnedTarget = Object.assign(target, source);
+
+console.log(target);
+// Expected output: Object { a: 1, b: 4, c: 5 }
+
+console.log(returnedTarget === target);
+// Expected output: true
+```
+
+### 语法
+
+```
+Object.assign(target, ...sources)
+```
+
+### 参数
+
+target
+目标对象，接收源对象属性的对象，也是修改后的返回值。
+
+sources
+源对象，包含将被合并的属性。
+
+### 返回值
+
+目标对象。
+
+### 描述
+
+如果目标对象与源对象具有相同的 key，则目标对象中的属性将被源对象中的属性覆盖，后面的源对象的属性将类似地覆盖前面的源对象的属性。
+
+Object.assign 方法只会拷贝源对象 可枚举的 和 自身的 属性到目标对象。该方法使用源对象的 [[Get]] 和目标对象的 [[Set]]，它会调用 getters 和 setters。故它分配属性，而不仅仅是复制或定义新的属性。如果合并源包含 getters，这可能使其不适合将新属性合并到原型中。
+
+为了将属性定义（包括其可枚举性）复制到原型，应使用 Object.getOwnPropertyDescriptor() 和 Object.defineProperty()，基本类型 String 和 Symbol 的属性会被复制。
+
+如果赋值期间出错，例如如果属性不可写，则会抛出 TypeError；如果在抛出异常之前添加了任何属性，则会修改 target 对象（译者注：换句话说，Object.assign() 没有“回滚”之前赋值的概念，它是一个尽力而为、可能只会完成部分复制的方法）。
+
+备注： Object.assign() 不会在 source 对象值为 null 或 undefined 时抛出错误。
+
+```
+var c = Object.assign(a, b, null, undefined)
+
+{1: '2', 2: '22', 3: '3'}
+```
+
+### 示例
+
+复制对象
+
+```
+const obj = { a: 1 };
+const copy = Object.assign({}, obj);
+console.log(copy); // { a: 1 }
+```
+
+### 深拷贝问题
+
+针对深拷贝, 需要使用其他办法，因为 Object.assign() 只复制属性值。
+
+假如源对象是一个对象的引用，它仅仅会复制其引用值。
+
+```
+function test() {
+  'use strict';
+
+  let obj1 = { a: 0 , b: { c: 0}};
+  let obj2 = Object.assign({}, obj1);
+  console.log(JSON.stringify(obj2)); // { "a": 0, "b": { "c": 0}}
+
+  obj1.a = 1;
+  console.log(JSON.stringify(obj1)); // { "a": 1, "b": { "c": 0}}
+  console.log(JSON.stringify(obj2)); // { "a": 0, "b": { "c": 0}}
+
+  obj2.a = 2;
+  console.log(JSON.stringify(obj1)); // { "a": 1, "b": { "c": 0}}
+  console.log(JSON.stringify(obj2)); // { "a": 2, "b": { "c": 0}}
+
+  obj2.b.c = 3;
+  console.log(JSON.stringify(obj1)); // { "a": 1, "b": { "c": 3}}
+  console.log(JSON.stringify(obj2)); // { "a": 2, "b": { "c": 3}}
+
+  // Deep Clone
+  obj1 = { a: 0 , b: { c: 0}};
+  let obj3 = JSON.parse(JSON.stringify(obj1));
+  obj1.a = 4;
+  obj1.b.c = 4;
+  console.log(JSON.stringify(obj3)); // { "a": 0, "b": { "c": 0}}
+}
+
+test();
+```
+
+### 合并对象
+
+```
+const o1 = { a: 1 };
+const o2 = { b: 2 };
+const o3 = { c: 3 };
+
+const obj = Object.assign(o1, o2, o3);
+console.log(obj); // { a: 1, b: 2, c: 3 }
+console.log(o1);  // { a: 1, b: 2, c: 3 }, target object itself is changed.
+```
+
+### 合并具有相同属性的对象
+
+```
+const o1 = { a: 1, b: 1, c: 1 };
+const o2 = { b: 2, c: 2 };
+const o3 = { c: 3 };
+
+const obj = Object.assign({}, o1, o2, o3);
+console.log(obj); // { a: 1, b: 2, c: 3 }
+```
+
+属性会被后续参数中具有相同属性的其他对象覆盖。
+
+### 拷贝 Symbol 类型属性
+
+```
+const o1 = { a: 1 };
+const o2 = { [Symbol('foo')]: 2 };
+
+const obj = Object.assign({}, o1, o2);
+console.log(obj); // { a : 1, [Symbol("foo")]: 2 } (cf. bug 1207182 on Firefox)
+Object.getOwnPropertySymbols(obj); // [Symbol(foo)]
+```
+
+### 原型链上的属性和不可枚举属性不能被复制
+
+```
+const obj = Object.create({ foo: 1 }, { // foo is on obj's prototype chain.
+  bar: {
+    value: 2  // bar is a non-enumerable property.
+  },
+  baz: {
+    value: 3,
+    enumerable: true  // baz is an own enumerable property.
+  }
+});
+
+const copy = Object.assign({}, obj);
+console.log(copy); // { baz: 3 }
+```
+
+### 基本类型会被包装为对象
+
+```
+const v1 = 'abc';
+const v2 = true;
+const v3 = 10;
+const v4 = Symbol('foo');
+
+const obj = Object.assign({}, v1, null, v2, undefined, v3, v4);
+// Primitives will be wrapped, null and undefined will be ignored.
+// Note, only string wrappers can have own enumerable properties.
+console.log(obj); // { "0": "a", "1": "b", "2": "c" }
+```
+
+### 异常会打断后续拷贝任务
+
+```
+const target = Object.defineProperty({}, 'foo', {
+  value: 1,
+  writable: false
+}); // target.foo is a read-only property
+
+Object.assign(target, { bar: 2 }, { foo2: 3, foo: 3, foo3: 3 }, { baz: 4 });
+// TypeError: "foo" is read-only
+// The Exception is thrown when assigning target.foo
+
+console.log(target.bar);  // 2, the first source was copied successfully.
+console.log(target.foo2); // 3, the first property of the second source was copied successfully.
+console.log(target.foo);  // 1, exception is thrown here.
+console.log(target.foo3); // undefined, assign method has finished, foo3 will not be copied.
+console.log(target.baz);  // undefined, the third source will not be copied either.
+```
+
+### Object.create()
+
+Object.create() 方法用于创建一个新对象，使用现有的对象来作为新创建对象的原型（prototype）。
+
+```
+const person = {
+  isHuman: false,
+  printIntroduction: function() {
+    console.log(`My name is ${this.name}. Am I human? ${this.isHuman}`);
+  }
+};
+
+const me = Object.create(person);
+
+me.name = 'Matthew'; // "name" is a property set on "me", but not on "person"
+me.isHuman = true; // Inherited properties can be overwritten
+
+me.printIntroduction();
+// Expected output: "My name is Matthew. Am I human? true"
+```
+
+![1675241745270](https://user-images.githubusercontent.com/59645426/215996490-dd5db3a3-66f9-474c-a6a0-0a5b40a6310a.png)
+
+### 语法
+
+```
+Object.create(proto)
+Object.create(proto, propertiesObject)
+```
+
+### 参数
+
+proto
+
+新创建对象的原型对象。
+
+
+propertiesObject 可选
+
+如果该参数被指定且不为 undefined，则该传入对象的自有可枚举属性（即其自身定义的属性，而不是其原型链上的枚举属性）将为新创建的对象添加指定的属性值和对应的属性描述符。这些属性对应于 Object.defineProperties() 的第二个参数。
+
+### 返回值
+
+一个新对象，带着指定的原型对象及其属性。
+
+### 异常
+
+proto 参数需为
+
+- null 或
+- 除基本类型包装对象以外的对象
+
+如果 proto 不是这几类值，则抛出一个 TypeError 异常。
+
+### 使用 null 原型的对象
+
+以 null 为原型的对象存在不可预期的行为，因为它未从 Object.prototype 继承任何对象方法。特别是在调试时，因为常见的对象属性的转换/检测工具可能会产生错误或丢失信息（特别是在静默模式，会忽略错误的情况下）。
+
+例如，缺少 Object.prototype.toString() 方法通常会使调试变得非常困难：
+
+```
+const normalObj = {};   // create a normal object
+const nullProtoObj = Object.create(null); // create an object with "null" prototype
+
+console.log("normalObj is: " + normalObj); // shows "normalObj is: [object Object]"
+console.log("nullProtoObj is: " + nullProtoObj); // throws error: Cannot convert object to primitive value
+
+alert(normalObj); // shows [object Object]
+alert(nullProtoObj); // throws error: Cannot convert object to primitive value
+```
+
+其它方法也同样会失败。
+
+```
+normalObj.valueOf() // shows {}
+nullProtoObj.valueOf() // throws error: nullProtoObj.valueOf is not a function
+
+normalObj.hasOwnProperty("p") // shows "true"
+nullProtoObj.hasOwnProperty("p") // throws error: nullProtoObj.hasOwnProperty is not a function
+
+normalObj.constructor // shows "Object() { [native code] }"
+nullProtoObj.constructor // shows "undefined"
+```
+
+我们可以为以 null 为原型的对象添加 toString 方法，类似于这样：
+
+```
+nullProtoObj.toString = Object.prototype.toString; // since new object lacks toString, add the original generic one back
+
+console.log(nullProtoObj.toString()); // shows "[object Object]"
+console.log("nullProtoObj is: " + nullProtoObj); // shows "nullProtoObj is: [object Object]"
+```
+
+与常规的对象不同，nullProtoObj 的 toString 方法是这个对象自身的属性，而非继承自对象的原型。这是因为 nullProtoObj “没有”原型（null）。
+
+在实践中，以 null 为原型的对象通常用于作为 map 的替代。因为 Object.prototype 原型自有的属性的存在会导致一些错误：
+
+```
+const ages = { alice: 18, bob: 27 };
+
+function hasPerson(name) {
+  return name in ages;
+}
+
+function getAge(name) {
+  return ages[name];
+}
+
+hasPerson("hasOwnProperty") // true
+getAge("toString") // [Function: toString]
+```
+
+使用以 null 为原型的对象消除了这种潜在的问题，且不会给 hasPerson 和 getAge 函数引入太多复杂的逻辑：
+
+```
+const ages = Object.create(null, {
+  alice: { value: 18, enumerable: true },
+  bob: { value: 27, enumerable: true },
+});
+
+hasPerson("hasOwnProperty") // false
+getAge("toString") // undefined
+```
+
+在这种情况下，应谨慎添加任何方法，因为它们可能会与存储的键值对混淆。
+
+令你使用的对象不继承 Object.prototype 原型的方法也可以防止原型污染攻击。如果恶意脚本向 Object.prototype 添加了一个属性，这个属性将能够被程序中的每一个对象所访问，而以 null 为原型的对象则不受影响。
+
+```
+const user = {};
+
+// A malicious script:
+Object.prototype.authenticated = true;
+
+// Unexpectedly allowing unauthenticated user to pass through
+if (user.authenticated) {
+  // access confidential data...
+}
+```
+
+### 示例
+
+用 Object.create() 实现类式继承
+
+下面的例子演示了如何使用 Object.create() 来实现类式继承。这是一个所有版本 JavaScript 都支持的单继承。
+
+```
+// Shape - superclass
+function Shape() {
+  this.x = 0;
+  this.y = 0;
+}
+
+// superclass method
+Shape.prototype.move = function(x, y) {
+  this.x += x;
+  this.y += y;
+  console.info('Shape moved.');
+};
+
+// Rectangle - subclass
+function Rectangle() {
+  Shape.call(this); // call super constructor.
+}
+
+// subclass extends superclass
+Rectangle.prototype = Object.create(Shape.prototype);
+
+//If you don't set Rectangle.prototype.constructor to Rectangle,
+//it will take the prototype.constructor of Shape (parent).
+//To avoid that, we set the prototype.constructor to Rectangle (child).
+Rectangle.prototype.constructor = Rectangle;
+
+const rect = new Rectangle();
+
+console.log('Is rect an instance of Rectangle?', rect instanceof Rectangle); // true
+console.log('Is rect an instance of Shape?', rect instanceof Shape); // true
+rect.move(1, 1); // Outputs, 'Shape moved.'
+```
+
+使用 Object.create() 的 propertyObject 参数
+
+```
+let o;
+
+// create an object with null as prototype
+o = Object.create(null);
+
+o = {};
+// is equivalent to:
+o = Object.create(Object.prototype);
+
+// Example where we create an object with a couple of
+// sample properties. (Note that the second parameter
+// maps keys to *property descriptors*.)
+o = Object.create(Object.prototype, {
+  // foo is a regular 'value property'
+  foo: {
+    writable: true,
+    configurable: true,
+    value: 'hello'
+  },
+  // bar is a getter-and-setter (accessor) property
+  bar: {
+    configurable: false,
+    get: function() { return 10; },
+    set: function(value) {
+      console.log('Setting `o.bar` to', value);
+    }
+/* with ES2015 Accessors our code can look like this
+    get() { return 10; },
+    set(value) {
+      console.log('Setting `o.bar` to', value);
+    } */
+  }
+});
+
+function Constructor() {}
+o = new Constructor();
+// is equivalent to:
+o = Object.create(Constructor.prototype);
+// Of course, if there is actual initialization code
+// in the Constructor function,
+// the Object.create() cannot reflect it
+
+// Create a new object whose prototype is a new, empty
+// object and add a single property 'p', with value 42.
+o = Object.create({}, { p: { value: 42 } });
+
+// by default properties ARE NOT writable,
+// enumerable or configurable:
+o.p = 24;
+o.p;
+// 42
+
+o.q = 12;
+for (const prop in o) {
+  console.log(prop);
+}
+// 'q'
+
+delete o.p;
+// false
+
+// to specify an ES3 property
+o2 = Object.create({}, {
+  p: {
+    value: 42,
+    writable: true,
+    enumerable: true,
+    configurable: true
+  }
+});
+/* is not equivalent to:
+This will create an object with prototype : {p: 42 }
+o2 = Object.create({p: 42}) */
+```
+
+![1675245651094](https://user-images.githubusercontent.com/59645426/216011741-ab25770d-e1d1-44a1-986c-05fb3a22f22a.png)
+
+
 
 <hr>
 
