@@ -1401,6 +1401,595 @@ console.log(
 );
 ```
 
+### Object.getOwnPropertySymbols()
+
+Object.getOwnPropertySymbols() 方法返回一个给定对象自身的所有 Symbol 属性的数组。
+
+### 语法
+
+Object.getOwnPropertySymbols(obj)
+
+### 参数
+
+obj
+要返回 Symbol 属性的对象。
+
+### 返回值
+
+在给定对象自身上找到的所有 Symbol 属性的数组。
+
+### 描述
+
+与Object.getOwnPropertyNames()类似，您可以将给定对象的所有符号属性作为 Symbol 数组获取。请注意，Object.getOwnPropertyNames()本身不包含对象的 Symbol 属性，只包含字符串属性。
+
+因为所有的对象在初始化的时候不会包含任何的 Symbol，除非你在对象上赋值了 Symbol 否则Object.getOwnPropertySymbols()只会返回一个空的数组。
+
+### 示例
+
+```
+var obj = {};
+var a = Symbol("a");
+var b = Symbol.for("b");
+
+obj[a] = "localSymbol";
+obj[b] = "globalSymbol";
+
+var objectSymbols = Object.getOwnPropertySymbols(obj);
+
+console.log(objectSymbols.length); // 2
+console.log(objectSymbols)         // [Symbol(a), Symbol(b)]
+console.log(objectSymbols[0])      // Symbol(a)
+```
+
+### Object.getPrototypeOf()
+
+Object.getPrototypeOf() 方法返回指定对象的原型（内部[[Prototype]]属性的值）。
+
+### 语法
+
+Object.getPrototypeOf(object)
+
+### 参数obj
+
+要返回其原型的对象。
+
+### 返回值
+
+给定对象的原型。如果没有继承属性，则返回 null 。
+
+```
+const prototype1 = {};
+const object1 = Object.create(prototype1);
+
+console.log(Object.getPrototypeOf(object1) === prototype1);
+// Expected output: true
+```
+
+### 示例
+
+```
+var proto = {};
+var obj = Object.create(proto);
+Object.getPrototypeOf(obj) === proto; // true
+
+var reg = /a/;
+Object.getPrototypeOf(reg) === RegExp.prototype; // true
+```
+
+### 说明
+
+JavaScript 中的 Object 是构造函数（创建对象的包装器）。
+
+```
+// 一般用法是：
+var obj = new Object();
+
+所以：
+Object.getPrototypeOf( Object );               // ƒ () { [native code] }
+Object.getPrototypeOf( Function );             // ƒ () { [native code] }
+
+Object.getPrototypeOf( Object ) === Function.prototype;        // true
+
+Object.getPrototypeOf( Object ) 是把 Object 这一构造函数看作对象，
+返回的当然是函数对象的原型，也就是 Function.prototype。
+
+正确的方法是，Object.prototype 是构造出来的对象的原型。
+var obj = new Object();
+Object.prototype === Object.getPrototypeOf( obj );              // true
+
+Object.prototype === Object.getPrototypeOf( {} );               // true
+```
+
+### Notes
+
+在 ES5 中，如果参数不是一个对象类型，将抛出一个TypeError异常。在 ES2015 中，参数会被强制转换为一个 Object。
+
+```
+Object.getPrototypeOf('foo');
+// TypeError: "foo" is not an object (ES5 code)
+Object.getPrototypeOf('foo');
+// String.prototype                  (ES2015 code)
+```
+
+### Object.hasOwn()
+
+如果指定的对象自身有指定的属性，则静态方法 Object.hasOwn() 返回 true。如果属性是继承的或者不存在，该方法返回 false。
+
+备注： Object.hasOwn() 旨在取代 Object.hasOwnProperty()。
+
+```
+const object1 = {
+  prop: 'exists'
+};
+
+console.log(Object.hasOwn(object1, 'prop'));
+// Expected output: true
+
+console.log(Object.hasOwn(object1, 'toString'));
+// Expected output: false
+
+console.log(Object.hasOwn(object1, 'undeclaredPropertyValue'));
+// Expected output: false
+```
+
+### 语法
+
+hasOwn(instance, prop)
+
+### 参数
+
+instance
+要测试的 JavaScript 实例对象。
+
+prop
+要测试属性的 String 类型的名称或者 Symbol。
+
+### 返回值
+
+如果指定的对象中直接定义了指定的属性，则返回 true；否则返回 false。
+
+### 描述
+
+如果指定的属性是该对象的直接属性——Object.hasOwn() 方法返回 true，即使属性值是 null 或 undefined。如果属性是继承的或者不存在，该方法返回 false。它不像 in 运算符，这个方法不检查对象的原型链中的指定属性。
+
+建议使用此方法替代 Object.hasOwnProperty()，因为它适用于使用 Object.create(null) 创建的对象以及覆盖了继承的 hasOwnProperty() 方法的对象。尽管可以通过在外部对象上调用 Object.prototype.hasOwnProperty() 解决这些问题，但是 Object.hasOwn() 更加直观。
+
+### 示例
+
+使用 hasOwn 去测试属性是否存在
+
+以下编码展示了如何确定 example 对象中是否包含名为 prop 的属性。
+
+```
+const example = {};
+Object.hasOwn(example, 'prop');   // false - 'prop' has not been defined
+
+example.prop = 'exists';
+Object.hasOwn(example, 'prop');   // true - 'prop' has been defined
+
+example.prop = null;
+Object.hasOwn(example, 'prop');   // true - own property exists with value of null
+
+example.prop = undefined;
+Object.hasOwn(example, 'prop');   // true - own property exists with value of undefined
+```
+
+直接属性和继承属性
+
+以下示例区分了直接属性和通过原型链继承的属性：
+
+```
+const example = {};
+example.prop = 'exists';
+
+// `hasOwn` will only return true for direct properties:
+Object.hasOwn(example, 'prop');             // returns true
+Object.hasOwn(example, 'toString');         // returns false
+Object.hasOwn(example, 'hasOwnProperty');   // returns false
+
+// The `in` operator will return true for direct or inherited properties:
+'prop' in example;                          // returns true
+'toString' in example;                      // returns true
+'hasOwnProperty' in example;                // returns true
+```
+
+### 迭代对象的属性
+
+要迭代对象的可枚举属性，你应该这样使用：
+
+```
+const example = { foo: true, bar: true };
+for (const name of Object.keys(example)) {
+  // …
+}
+```
+
+但是如果你使用 for...in，你应该使用 Object.hasOwn() 跳过继承属性：
+
+```
+const example = { foo: true, bar: true };
+for (const name in example) {
+  if (Object.hasOwn(example, name)) {
+    // …
+  }
+}
+```
+
+### 检查数组索引是否存在
+
+Array 中的元素被定义为直接属性，所以你可以使用 hasOwn() 方法去检查一个指定的索引是否存在：
+
+```
+const fruits = ['Apple', 'Banana','Watermelon', 'Orange'];
+Object.hasOwn(fruits, 3);   // true ('Orange')
+Object.hasOwn(fruits, 4);   // false - not defined
+```
+
+### hasOwnProperty 的问题案例
+
+本部分证明了影响 hasOwnProperty 的问题对 hasOwn() 是免疫的。首先，它可以与重新实现的 hasOwnProperty() 一起使用：
+
+```
+const foo = {
+  hasOwnProperty() {
+    return false;
+  },
+  bar: 'The dragons be out of office',
+};
+
+if (Object.hasOwn(foo, 'bar')) {
+  console.log(foo.bar); //true - reimplementation of hasOwnProperty() does not affect Object
+}
+```
+
+它也可以用于测试使用 Object.create(null) 创建的对象。这些都不继承自 Object.prototype，因此 hasOwnProperty() 无法访问。
+
+```
+const foo = Object.create(null);
+foo.prop = 'exists';
+if (Object.hasOwn(foo, 'prop')) {
+  console.log(foo.prop); //true - works irrespective of how the object is created.
+}
+```
+
+### Object.prototype.hasOwnProperty()
+
+hasOwnProperty() 方法会返回一个布尔值，指示对象自身属性中是否具有指定的属性（也就是，是否有指定的键）。
+
+```
+const object1 = {};
+object1.property1 = 42;
+
+console.log(object1.hasOwnProperty('property1'));
+// Expected output: true
+
+console.log(object1.hasOwnProperty('toString'));
+// Expected output: false
+
+console.log(object1.hasOwnProperty('hasOwnProperty'));
+// Expected output: false
+```
+
+### 语法
+
+obj.hasOwnProperty(prop)
+
+### 参数
+
+prop
+要检测的属性的 String 字符串形式表示的名称，或者 Symbol。
+
+### 返回值
+
+用来判断某个对象是否含有指定的属性的布尔值 Boolean。
+
+### 描述
+
+所有继承了 Object 的对象都会继承到 hasOwnProperty 方法。这个方法可以用来检测一个对象是否含有特定的自身属性；和 in 运算符不同，该方法会忽略掉那些从原型链上继承到的属性。
+
+### 备注
+
+即使属性的值是 null 或 undefined，只要属性存在，hasOwnProperty 依旧会返回 true。
+
+```
+o = new Object();
+o.propOne = null;
+o.hasOwnProperty('propOne'); // 返回 true
+o.propTwo = undefined;
+o.hasOwnProperty('propTwo'); // 返回 true
+```
+
+### 示例
+
+使用 hasOwnProperty 方法判断属性是否存在
+
+下面的例子检测了对象 o 是否含有自身属性 prop：
+
+```
+o = new Object();
+o.hasOwnProperty('prop'); // 返回 false
+o.prop = 'exists';
+o.hasOwnProperty('prop'); // 返回 true
+delete o.prop;
+o.hasOwnProperty('prop'); // 返回 false
+```
+
+### 自身属性与继承属性
+
+下面的例子演示了 hasOwnProperty 方法对待自身属性和继承属性的区别：
+
+```
+o = new Object();
+o.prop = 'exists';
+o.hasOwnProperty('prop');             // 返回 true
+o.hasOwnProperty('toString');         // 返回 false
+o.hasOwnProperty('hasOwnProperty');   // 返回 false
+```
+
+### 遍历一个对象的所有自身属性
+
+下面的例子演示了如何在遍历一个对象的所有属性时忽略掉继承属性，注意这里 for...in 循环只会遍历可枚举属性，所以不应该基于这个循环中没有不可枚举的属性而得出 hasOwnProperty 是严格限制于可枚举项目的（如同 Object.getOwnPropertyNames()）。
+
+```
+var buz = {
+  fog: 'stack'
+};
+
+for (var name in buz) {
+  if (buz.hasOwnProperty(name)) {
+    console.log('this is fog (' +
+      name + ') for sure. Value: ' + buz[name]);
+  }
+  else {
+    console.log(name); // toString or something else
+  }
+}
+```
+
+### 使用 hasOwnProperty 作为属性名
+
+JavaScript 并没有保护 hasOwnProperty 这个属性名，因此，当某个对象可能自有一个占用该属性名的属性时，就需要使用外部的 hasOwnProperty 获得正确的结果：
+
+```
+var foo = {
+  hasOwnProperty: function() {
+    return false;
+  },
+  bar: 'Here be dragons'
+};
+
+foo.hasOwnProperty('bar'); // 始终返回 false
+
+// 如果担心这种情况，
+// 可以直接使用原型链上真正的 hasOwnProperty 方法
+({}).hasOwnProperty.call(foo, 'bar'); // true
+
+// 也可以使用 Object 原型上的 hasOwnProperty 属性
+Object.prototype.hasOwnProperty.call(foo, 'bar'); // true
+```
+
+注意，只有在最后一种情况下，才不会新建任何对象。
+
+### Object.is()
+
+Object.is() 方法判断两个值是否为同一个值。
+
+### 语法
+
+Object.is(value1, value2);
+
+### 参数
+
+value1
+被比较的第一个值。
+
+value2
+被比较的第二个值。
+
+### 返回值
+
+一个布尔值，表示两个参数是否是同一个值。
+
+### 描述
+
+Object.is() 方法判断两个值是否为同一个值，如果满足以下任意条件则两个值相等：
+
+      都是 undefined
+      都是 null
+      都是 true 或都是 false
+      都是相同长度、相同字符、按相同顺序排列的字符串
+      都是相同对象（意味着都是同一个对象的值引用）
+      都是数字且
+      都是 +0
+      都是 -0
+      都是 NaN
+      都是同一个值，非零且都不是 NaN
+
+Object.is() 与 == 不同。== 运算符在判断相等前对两边的变量（如果它们不是同一类型）进行强制转换（这种行为将 "" == false 判断为 true），而 Object.is 不会强制转换两边的值。
+
+Object.is() 与 === 也不相同。差别是它们对待有符号的零和 NaN 不同，例如，=== 运算符（也包括 == 运算符）将数字 -0 和 +0 视为相等，而将 Number.NaN 与 NaN 视为不相等。
+
+### 示例
+
+使用 Object.is
+
+```
+// Case 1: Evaluation result is the same as using ===
+Object.is(25, 25);                // true
+Object.is('foo', 'foo');          // true
+Object.is('foo', 'bar');          // false
+Object.is(null, null);            // true
+Object.is(undefined, undefined);  // true
+Object.is(window, window);        // true
+Object.is([], []);                // false
+var foo = { a: 1 };
+var bar = { a: 1 };
+Object.is(foo, foo);              // true
+Object.is(foo, bar);              // false
+
+// Case 2: Signed zero
+Object.is(0, -0);                 // false
+Object.is(+0, -0);                // false
+Object.is(-0, -0);                // true
+Object.is(0n, -0n);               // true
+
+// Case 3: NaN
+Object.is(NaN, 0/0);              // true
+Object.is(NaN, Number.NaN)        // true
+```
+
+### Object.isExtensible()
+
+### 概述
+
+Object.isExtensible() 方法判断一个对象是否是可扩展的（是否可以在它上面添加新的属性）。
+
+### 语法
+
+Object.isExtensible(obj)
+
+### 参数
+
+obj
+需要检测的对象
+
+### 返回值
+
+表示给定对象是否可扩展的一个 Boolean。
+
+### 描述
+
+默认情况下，对象是可扩展的：即可以为他们添加新的属性。以及它们的 Object.prototype.__proto__ 已弃用 属性可以被更改。Object.preventExtensions，Object.seal 或 Object.freeze 方法都可以标记一个对象为不可扩展（non-extensible）。
+
+### 例子
+
+```
+// 新对象默认是可扩展的。
+var empty = {};
+Object.isExtensible(empty); // === true
+
+// ...可以变的不可扩展。
+Object.preventExtensions(empty);
+Object.isExtensible(empty); // === false
+
+// 密封对象是不可扩展的。
+var sealed = Object.seal({});
+Object.isExtensible(sealed); // === false
+
+// 冻结对象也是不可扩展。
+var frozen = Object.freeze({});
+Object.isExtensible(frozen); // === false
+```
+
+### 注意
+
+在 ES5 中，如果参数不是一个对象类型，将抛出一个 TypeError 异常。在 ES6 中，non-object 参数将被视为一个不可扩展的普通对象，因此会返回 false。
+
+```
+Object.isExtensible(1);
+// TypeError: 1 is not an object (ES5 code)
+
+Object.isExtensible(1);
+// false                         (ES6 code)
+```
+
+### Object.isFrozen()
+
+Object.isFrozen()方法判断一个对象是否被冻结。
+
+### 语法
+
+Object.isFrozen(obj)
+
+### 参数
+
+obj
+被检测的对象。
+
+### 返回值
+
+表示给定对象是否被冻结的Boolean。
+
+### 描述
+
+一个对象是冻结的是指它不可扩展，所有属性都是不可配置的，且所有数据属性（即没有 getter 或 setter 组件的访问器的属性）都是不可写的。
+
+### 例子
+
+```
+// 一个对象默认是可扩展的，所以它也是非冻结的。
+Object.isFrozen({}); // === false
+
+// 一个不可扩展的空对象同时也是一个冻结对象。
+var vacuouslyFrozen = Object.preventExtensions({});
+Object.isFrozen(vacuouslyFrozen) //=== true;
+
+// 一个非空对象默认也是非冻结的。
+var oneProp = { p: 42 };
+Object.isFrozen(oneProp) //=== false
+
+// 让这个对象变的不可扩展，并不意味着这个对象变成了冻结对象，
+// 因为 p 属性仍然是可以配置的 (而且可写的).
+Object.preventExtensions(oneProp);
+Object.isFrozen(oneProp) //=== false
+
+// 此时，如果删除了这个属性，则它会成为一个冻结对象。
+delete oneProp.p;
+Object.isFrozen(oneProp) //=== true
+
+// 一个不可扩展的对象，拥有一个不可写但可配置的属性，则它仍然是非冻结的。
+var nonWritable = { e: "plep" };
+Object.preventExtensions(nonWritable);
+Object.defineProperty(nonWritable, "e", { writable: false }); // 变得不可写
+Object.isFrozen(nonWritable) //=== false
+
+// 把这个属性改为不可配置，会让这个对象成为冻结对象。
+Object.defineProperty(nonWritable, "e", { configurable: false }); // 变得不可配置
+Object.isFrozen(nonWritable) //=== true
+
+// 一个不可扩展的对象，拥有一个不可配置但可写的属性，则它仍然是非冻结的。
+var nonConfigurable = { release: "the kraken!" };
+Object.preventExtensions(nonConfigurable);
+Object.defineProperty(nonConfigurable, "release", { configurable: false });
+Object.isFrozen(nonConfigurable) //=== false
+
+// 把这个属性改为不可写，会让这个对象成为冻结对象。
+Object.defineProperty(nonConfigurable, "release", { writable: false });
+Object.isFrozen(nonConfigurable) //=== true
+
+// 一个不可扩展的对象，值拥有一个访问器属性，则它仍然是非冻结的。
+var accessor = { get food() { return "yum"; } };
+Object.preventExtensions(accessor);
+Object.isFrozen(accessor) //=== false
+
+// ...但把这个属性改为不可配置，会让这个对象成为冻结对象。
+Object.defineProperty(accessor, "food", { configurable: false });
+Object.isFrozen(accessor) //=== true
+
+// 使用 Object.freeze 是冻结一个对象最方便的方法。
+var frozen = { 1: 81 };
+Object.isFrozen(frozen) //=== false
+Object.freeze(frozen);
+Object.isFrozen(frozen) //=== true
+
+// 一个冻结对象也是一个密封对象。
+Object.isSealed(frozen) //=== true
+
+// 当然，更是一个不可扩展的对象。
+Object.isExtensible(frozen) //=== false
+```
+
+### 注意
+
+在 ES5 中，如果参数不是一个对象类型，将抛出一个TypeError异常。在 ES2015 中，非对象参数将被视为一个冻结的普通对象，因此会返回true。
+
+```
+Object.isFrozen(1);
+// TypeError: 1 is not an object (ES5 code)
+
+Object.isFrozen(1);
+// true                          (ES2015 code)
+```
 
 <hr>
 
