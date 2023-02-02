@@ -844,6 +844,563 @@ set
 - 拥有布尔值的键 configurable、enumerable 和 writable 的默认值都是 false。
 - 属性值和函数的键 value、get 和 set 字段的默认值为 undefined。
 
+### Object.entries()
+
+Object.entries()
+
+方法返回一个给定对象自身可枚举属性的键值对数组，其排列与使用 for...in 循环遍历该对象时返回的顺序一致（区别在于 for-in 循环还会枚举原型链中的属性）。
+
+```
+const object1 = {
+  a: 'somestring',
+  b: 42
+};
+
+for (const [key, value] of Object.entries(object1)) {
+  console.log(`${key}: ${value}`);
+}
+
+// Expected output:
+// "a: somestring"
+// "b: 42"
+```
+
+### 语法
+
+Object.entries(obj)
+
+### 参数
+
+obj
+可以返回其可枚举属性的键值对的对象。
+
+### 返回值
+
+给定对象自身可枚举属性的键值对数组。
+
+### 描述
+
+Object.entries()返回一个数组，其元素是与直接在object上找到的可枚举属性键值对相对应的数组。属性的顺序与通过手动循环对象的属性值所给出的顺序相同。
+
+### 示例
+
+```
+const obj = { foo: 'bar', baz: 42 };
+console.log(Object.entries(obj)); // [ ['foo', 'bar'], ['baz', 42] ]
+
+// array like object
+const obj = { 0: 'a', 1: 'b', 2: 'c' };
+console.log(Object.entries(obj)); // [ ['0', 'a'], ['1', 'b'], ['2', 'c'] ]
+
+// array like object with random key ordering
+const anObj = { 100: 'a', 2: 'b', 7: 'c' };
+console.log(Object.entries(anObj)); // [ ['2', 'b'], ['7', 'c'], ['100', 'a'] ]
+
+// getFoo is property which isn't enumerable
+const myObj = Object.create({}, { getFoo: { value() { return this.foo; } } });
+myObj.foo = 'bar';
+console.log(Object.entries(myObj)); // [ ['foo', 'bar'] ]
+
+// non-object argument will be coerced to an object
+console.log(Object.entries('foo')); // [ ['0', 'f'], ['1', 'o'], ['2', 'o'] ]
+
+// iterate through key-value gracefully
+const obj = { a: 5, b: 7, c: 9 };
+for (const [key, value] of Object.entries(obj)) {
+  console.log(`${key} ${value}`); // "a 5", "b 7", "c 9"
+}
+
+// Or, using array extras
+Object.entries(obj).forEach(([key, value]) => {
+console.log(`${key} ${value}`); // "a 5", "b 7", "c 9"
+});
+```
+
+### 将Object转换为Map
+
+new Map() 构造函数接受一个可迭代的entries。借助Object.entries方法你可以很容易的将Object转换为Map:
+
+```
+var obj = { foo: "bar", baz: 42 };
+var map = new Map(Object.entries(obj));
+console.log(map); // Map { foo: "bar", baz: 42 }
+```
+
+### Object.freeze()
+
+Object.freeze() 方法可以冻结一个对象。一个被冻结的对象再也不能被修改；冻结了一个对象则不能向这个对象添加新的属性，不能删除已有属性，不能修改该对象已有属性的可枚举性、可配置性、可写性，以及不能修改已有属性的值。此外，冻结一个对象后该对象的原型也不能被修改。freeze() 返回和传入的参数相同的对象。
+
+```
+const obj = {
+  prop: 42
+};
+
+Object.freeze(obj);
+
+obj.prop = 33;
+// Throws an error in strict mode
+
+console.log(obj.prop);
+// Expected output: 42
+```
+
+### 语法
+
+Object.freeze(obj)
+
+### 参数
+
+obj
+要被冻结的对象。
+
+### 返回值
+
+被冻结的对象。
+
+### 描述
+
+被冻结对象自身的所有属性都不可能以任何方式被修改。任何修改尝试都会失败，无论是静默地还是通过抛出TypeError异常（最常见但不仅限于strict mode）。
+
+数据属性的值不可更改，访问器属性（有 getter 和 setter）也同样（但由于是函数调用，给人的错觉是还是可以修改这个属性）。如果一个属性的值是个对象，则这个对象中的属性是可以修改的，除非它也是个冻结对象。数组作为一种对象，被冻结，其元素不能被修改。没有数组元素可以被添加或移除。
+
+这个方法返回传递的对象，而不是创建一个被冻结的副本。
+
+例子
+
+冻结对象
+
+```
+var obj = {
+  prop: function() {},
+  foo: 'bar'
+};
+
+// 新的属性会被添加，已存在的属性可能
+// 会被修改或移除
+obj.foo = 'baz';
+obj.lumpy = 'woof';
+delete obj.prop;
+
+// 作为参数传递的对象与返回的对象都被冻结
+// 所以不必保存返回的对象（因为两个对象全等）
+var o = Object.freeze(obj);
+
+o === obj; // true
+Object.isFrozen(obj); // === true
+
+// 现在任何改变都会失效
+obj.foo = 'quux'; // 静默地不做任何事
+// 静默地不添加此属性
+obj.quaxxor = 'the friendly duck';
+
+// 在严格模式，如此行为将抛出 TypeErrors
+function fail(){
+  'use strict';
+  obj.foo = 'sparky'; // throws a TypeError
+  delete obj.quaxxor; // 返回 true，因为 quaxxor 属性从来未被添加
+  obj.sparky = 'arf'; // throws a TypeError
+}
+
+fail();
+
+// 试图通过 Object.defineProperty 更改属性
+// 下面两个语句都会抛出 TypeError.
+Object.defineProperty(obj, 'ohai', { value: 17 });
+Object.defineProperty(obj, 'foo', { value: 'eit' });
+
+// 也不能更改原型
+// 下面两个语句都会抛出 TypeError.
+Object.setPrototypeOf(obj, { x: 20 })
+obj.__proto__ = { x: 20 }
+```
+
+冻结数组
+
+```
+let a = [0];
+Object.freeze(a); // 现在数组不能被修改了。
+
+a[0]=1; // fails silently
+a.push(2); // fails silently
+
+// In strict mode such attempts will throw TypeErrors
+function fail() {
+  "use strict"
+  a[0] = 1;
+  a.push(2);
+}
+
+fail();
+Copy to Clipboard
+被冻结的对象是不可变的。但也不总是这样。下例展示了冻结对象不是常量对象（浅冻结）。
+
+obj1 = {
+  internal: {}
+};
+
+Object.freeze(obj1);
+obj1.internal.a = 'aValue';
+
+obj1.internal.a // 'aValue'
+```
+
+对于一个常量对象，整个引用图（直接和间接引用其他对象）只能引用不可变的冻结对象。冻结的对象被认为是不可变的，因为整个对象中的整个对象状态（对其他对象的值和引用）是固定的。注意，字符串，数字和布尔总是不可变的，而函数和数组是对象。
+
+要使对象不可变，需要递归冻结每个类型为对象的属性（深冻结）。当你知道对象在引用图中不包含任何 _环 _(循环引用) 时，将根据你的设计逐个使用该模式，否则将触发无限循环。对 deepFreeze() 的增强将是具有接收路径（例如 Array）参数的内部函数，以便当对象进入不变时，可以递归地调用 deepFreeze() 。你仍然有冻结不应冻结的对象的风险，例如 [window]。
+
+```
+// 深冻结函数。
+function deepFreeze(obj) {
+
+  // 取回定义在 obj 上的属性名
+  var propNames = Object.getOwnPropertyNames(obj);
+
+  // 在冻结自身之前冻结属性
+  propNames.forEach(function(name) {
+    var prop = obj[name];
+
+    // 如果 prop 是个对象，冻结它
+    if (typeof prop == 'object' && prop !== null)
+      deepFreeze(prop);
+  });
+
+  // 冻结自身 (no-op if already frozen)
+  return Object.freeze(obj);
+}
+
+obj2 = {
+  internal: {}
+};
+
+deepFreeze(obj2);
+obj2.internal.a = 'anotherValue';
+obj2.internal.a; // undefined
+```
+
+### Notes
+
+在 ES5 中，如果这个方法的参数不是一个对象（一个原始值），那么它会导致 TypeError。在 ES2015 中，非对象参数将被视为要被冻结的普通对象，并被简单地返回。
+
+```
+> Object.freeze(1)
+TypeError: 1 is not an object // ES5 code
+
+> Object.freeze(1)
+1                             // ES2015 code
+```
+
+### 对比 Object.seal()
+
+用Object.seal()密封的对象可以改变它们现有的属性。使用Object.freeze() 冻结的对象中现有属性是不可变的。
+
+### Object.fromEntries()
+
+Object.fromEntries() 方法把键值对列表转换为一个对象。
+
+```
+const entries = new Map([
+  ['foo', 'bar'],
+  ['baz', 42]
+]);
+
+const obj = Object.fromEntries(entries);
+
+console.log(obj);
+// Expected output: Object { foo: "bar", baz: 42 }
+```
+
+### 语法
+
+Object.fromEntries(iterable);
+
+### 参数
+
+iterable
+类似 Array 、 Map 或者其它实现了可迭代协议的可迭代对象。
+
+### 返回值
+
+一个由该迭代对象条目提供对应属性的新对象。
+
+### 描述
+
+Object.fromEntries() 方法接收一个键值对的列表参数，并返回一个带有这些键值对的新对象。这个迭代参数应该是一个能够实现@@iterator方法的的对象，返回一个迭代器对象。它生成一个具有两个元素的类数组的对象，第一个元素是将用作属性键的值，第二个元素是与该属性键关联的值。
+
+Object.fromEntries() 执行与 Object.entries 互逆的操作。
+
+### 示例
+
+Map 转化为 Object
+
+通过 Object.fromEntries，可以将 Map 转换为 Object:
+
+```
+const map = new Map([ ['foo', 'bar'], ['baz', 42] ]);
+const obj = Object.fromEntries(map);
+console.log(obj); // { foo: "bar", baz: 42 }
+```
+
+Array 转化为 Object
+
+通过 Object.fromEntries，可以将 Array 转换为 Object:
+
+```
+const arr = [ ['0', 'a'], ['1', 'b'], ['2', 'c'] ];
+const obj = Object.fromEntries(arr);
+console.log(obj); // { 0: "a", 1: "b", 2: "c" }
+```
+
+### 对象转换
+
+Object.fromEntries 是与 Object.entries() 相反的方法，用 数组处理函数 可以像下面这样转换对象：
+
+```
+const object1 = { a: 1, b: 2, c: 3 };
+
+const object2 = Object.fromEntries(
+  Object.entries(object1)
+  .map(([ key, val ]) => [ key, val * 2 ])
+);
+
+console.log(object2);
+// { a: 2, b: 4, c: 6 }
+```
+
+### Object.getOwnPropertyDescriptor()
+
+Object.getOwnPropertyDescriptor() 方法返回指定对象上一个自有属性对应的属性描述符。（自有属性指的是直接赋予该对象的属性，不需要从原型链上进行查找的属性）
+
+```
+const object1 = {
+  property1: 42
+};
+
+const descriptor1 = Object.getOwnPropertyDescriptor(object1, 'property1');
+
+console.log(descriptor1.configurable);
+// Expected output: true
+
+console.log(descriptor1.value);
+// Expected output: 42
+```
+
+### 语法
+
+Object.getOwnPropertyDescriptor(obj, prop)
+
+### 参数
+
+obj
+需要查找的目标对象
+
+prop
+目标对象内属性名称
+
+### 返回值
+
+如果指定的属性存在于对象上，则返回其属性描述符对象（property descriptor），否则返回 undefined。
+
+### 描述
+
+该方法允许对一个属性的描述进行检索。在 Javascript 中，属性 由一个字符串类型的“名字”（name）和一个“属性描述符”（property descriptor）对象构成。更多关于属性描述符类型以及他们属性的信息可以查看：Object.defineProperty.
+
+一个属性描述符是一个记录，由下面属性当中的某些组成的：
+
+value
+该属性的值 (仅针对数据属性描述符有效)
+
+writable
+当且仅当属性的值可以被改变时为 true。(仅针对数据属性描述有效)
+
+get
+获取该属性的访问器函数（getter）。如果没有访问器，该值为 undefined。(仅针对包含访问器或设置器的属性描述有效)
+
+set
+获取该属性的设置器函数（setter）。如果没有设置器，该值为 undefined。(仅针对包含访问器或设置器的属性描述有效)
+
+configurable
+当且仅当指定对象的属性描述可以被改变或者属性可被删除时，为 true。
+
+enumerable
+当且仅当指定对象的属性可以被枚举出时，为 true。
+
+示例
+
+```
+var o, d;
+
+o = { get foo() { return 17; } };
+d = Object.getOwnPropertyDescriptor(o, "foo");
+// d {
+//   configurable: true,
+//   enumerable: true,
+//   get: /*the getter function*/,
+//   set: undefined
+// }
+
+o = { bar: 42 };
+d = Object.getOwnPropertyDescriptor(o, "bar");
+// d {
+//   configurable: true,
+//   enumerable: true,
+//   value: 42,
+//   writable: true
+// }
+
+o = {};
+Object.defineProperty(o, "baz", {
+  value: 8675309,
+  writable: false,
+  enumerable: false
+});
+d = Object.getOwnPropertyDescriptor(o, "baz");
+// d {
+//   value: 8675309,
+//   writable: false,
+//   enumerable: false,
+//   configurable: false
+// }
+```
+
+### 注意事项
+
+在 ES5 中，如果该方法的第一个参数不是对象（而是原始类型），那么就会产生出现 TypeError。而在 ES2015，第一个的参数不是对象的话就会被强制转换为对象。
+
+```
+Object.getOwnPropertyDescriptor('foo', 0);
+// 类型错误："foo" 不是一个对象  // ES5 code
+
+Object.getOwnPropertyDescriptor('foo', 0);
+// Object returned by ES2015 code: {
+//   configurable: false,
+//   enumerable: true,
+//   value: "f",
+//   writable: false
+// }
+```
+
+### Object.getOwnPropertyDescriptors()
+
+Object.getOwnPropertyDescriptors() 方法用来获取一个对象的所有自身属性的描述符。
+
+### 语法
+
+Object.getOwnPropertyDescriptors(obj)
+
+### 参数
+
+obj
+任意对象
+
+### 返回值
+
+所指定对象的所有自身属性的描述符，如果没有任何自身属性，则返回空对象。
+
+### 示例
+
+浅拷贝一个对象
+
+Object.assign() 方法只能拷贝源对象的可枚举的自身属性，同时拷贝时无法拷贝属性的特性们，而且访问器属性会被转换成数据属性，也无法拷贝源对象的原型，该方法配合 Object.create() 方法可以实现上面说的这些。
+
+```
+Object.create(
+  Object.getPrototypeOf(obj),
+  Object.getOwnPropertyDescriptors(obj)
+);
+```
+
+### 创建子类
+
+创建子类的典型方法是定义子类，将其原型设置为超类的实例，然后在该实例上定义属性。这么写很不优雅，特别是对于 getters 和 setter 而言。相反，您可以使用此代码设置原型：
+
+```
+function superclass() {}
+superclass.prototype = {
+  // 在这里定义方法和属性
+};
+function subclass() {}
+subclass.prototype = Object.create(superclass.prototype, Object.getOwnPropertyDescriptors({
+  // 在这里定义方法和属性
+}));
+```
+
+### Object.getOwnPropertyNames()
+
+Object.getOwnPropertyNames()方法返回一个由指定对象的所有自身属性的属性名（包括不可枚举属性但不包括 Symbol 值作为名称的属性）组成的数组。
+
+### 语法
+
+Object.getOwnPropertyNames(obj)
+
+### 参数
+
+obj
+一个对象，其自身的可枚举和不可枚举属性的名称被返回。
+
+### 返回值
+
+在给定对象上找到的自身属性对应的字符串数组。
+
+### 描述
+
+Object.getOwnPropertyNames() 返回一个数组，该数组对元素是 obj自身拥有的枚举或不可枚举属性名称字符串。数组中枚举属性的顺序与通过 for...in 循环（或 Object.keys）迭代该对象属性时一致。数组中不可枚举属性的顺序未定义。
+
+### 示例
+
+使用 Object.getOwnPropertyNames()
+
+```
+var arr = ["a", "b", "c"];
+console.log(Object.getOwnPropertyNames(arr).sort()); // ["0", "1", "2", "length"]
+
+// 类数组对象
+var obj = { 0: "a", 1: "b", 2: "c"};
+console.log(Object.getOwnPropertyNames(obj).sort()); // ["0", "1", "2"]
+
+// 使用 Array.forEach 输出属性名和属性值
+Object.getOwnPropertyNames(obj).forEach(function(val, idx, array) {
+  console.log(val + " -> " + obj[val]);
+});
+// 输出
+// 0 -> a
+// 1 -> b
+// 2 -> c
+
+//不可枚举属性
+var my_obj = Object.create({}, {
+  getFoo: {
+    value: function() { return this.foo; },
+    enumerable: false
+  }
+});
+my_obj.foo = 1;
+
+console.log(Object.getOwnPropertyNames(my_obj).sort()); // ["foo", "getFoo"]
+```
+
+如果你只要获取到可枚举属性，查看Object.keys或用for...in循环（还会获取到原型链上的可枚举属性，不过可以使用hasOwnProperty()方法过滤掉）。
+
+下面的例子演示了该方法不会获取到原型链上的属性：
+
+```
+function ParentClass() {}
+ParentClass.prototype.inheritedMethod = function() {};
+
+function ChildClass() {
+  this.prop = 5;
+  this.method = function() {};
+}
+
+ChildClass.prototype = new ParentClass;
+ChildClass.prototype.prototypeMethod = function() {};
+
+console.log(
+  Object.getOwnPropertyNames(
+    new ChildClass()  // ["prop", "method"]
+  )
+);
+```
+
 
 <hr>
 
@@ -1045,7 +1602,7 @@ with 绑定中未包含的数组默认属性有：
 - keys()
 - values()
 
-**`Array.prototype[@@unscopables]` 属性的属性特性：**
+`Array.prototype[@@unscopables]` 属性的属性特性：
 
 - writable: false
 - enumerable: false
