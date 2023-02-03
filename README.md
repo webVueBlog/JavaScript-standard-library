@@ -6,6 +6,8 @@ https://webvueblog.github.io/JavaScript-standard-library/
 
 <img width="300px" src="https://user-images.githubusercontent.com/59645426/187019807-7785b3c9-9931-4bca-a28f-5e508a4c9839.jpg"/>
 
+<hr>
+
 ## JavaScript 标准内置对象
 
 这里的术语"全局对象"（或标准内置对象）不应与global 对象混淆。这里的"全局对象"指的是处在全局作用域里的多个对象。
@@ -186,6 +188,8 @@ var o = new Object(Boolean());
 当一个函数被调用时，调用的参数被保存在一个类似数组的“变量” arguments。 比如说：在调用 myFn(a, b, c) 时，myFunc 函数体中的 arguments 将会包含三个类似数组的元素，对应 (a, b , c)
 
 当使用钩子修改原型时，通过调用函数的apply()将此参数和参数(调用状态)传递给当前行为。此模式可用于任何原型，例如Node。原型,函数。原型等。
+
+<hr>
 
 ## Object() 构造函数
 
@@ -2498,6 +2502,388 @@ Object.seal(1);
 
 使用Object.freeze()冻结的对象中的现有属性值是不可变的。用Object.seal()密封的对象可以改变其现有属性值。
 
+### Object.setPrototypeOf()
+
+Object.setPrototypeOf() 方法设置一个指定的对象的原型（即，内部 [[Prototype]] 属性）到另一个对象或 null。
+
+警告： 由于现代 JavaScript 引擎优化属性访问所带来的特性的关系，更改对象的 [[Prototype]] 在各个浏览器和 JavaScript 引擎上都是一个很慢的操作。其在更改继承的性能上的影响是微妙而又广泛的，这不仅仅限于 Object.setPrototypeOf(...) 语句上的时间花费，而且可能会延伸到**任何代码，那些可以访问任何** [[Prototype]] 已被更改的对象的代码。参阅JavaScript 引擎基础知识：原型优化以了解更多。
+
+由于此特性是语言的一部分，因此引擎开发人员仍需要高效地（理想地）实现该特性。在引擎开发人员解决此问题之前，如果你担心性能问题，则应该避免设置对象的 [[Prototype]]。相反，你应该使用 Object.create() 来创建带有你想要的 [[Prototype]] 的新对象。
+
+### 语法
+
+Object.setPrototypeOf(obj, prototype)
+
+### 参数
+
+obj
+要设置其原型的对象。
+
+prototype
+该对象的新原型（一个对象或 null）。
+
+### 返回值
+
+指定的对象。
+
+### 异常
+
+TypeError
+如果发生以下情况中的任何一个，则抛出该异常：
+
+  obj 参数是不可扩展的，或者它是一个不可修改原型的特异对象（exotic object），例如 Object.prototype 或 window.
+  prototype 参数不是对象或 null。
+  
+### 描述
+
+通常，应该使用 Object.setPrototypeOf() 方法来设置对象的原型。你应该使用使用它，因为 Object.prototype.__proto__ 访问器已被弃用。
+
+如果 obj 参数不是一个对象（例如，数字、字符串，等），该方法将什么也不做。
+
+出于安全考虑，某些内置对象的原型被设计为是不可变的。这可以防止原型污染攻击，尤其是与代理（proxy）相关的。核心语言仅指定 Object.prototype 是不可变原型的特异对象，其原型始终为 null。而在浏览器中，window 和 location 也是（常见的）不可变原型的特异对象。
+
+Object.setPrototypeOf() 是 ECMAScript 6 最新草案中的方法，相对于 Object.prototype.__proto__，它被认为是修改对象原型更合适的方法
+
+```
+Object.isExtensible(Object.prototype); // true; you can add more properties
+Object.setPrototypeOf(Object.prototype, {}); // TypeError: Immutable prototype object '#<Object>' cannot have their prototype set
+```
+
+### 示例
+
+使用 Object.setPrototypeOf 实现伪类继承
+
+JS 中可以这样实现类继承。
+
+```
+class Human {}
+class SuperHero extends Human {}
+
+const superMan = new SuperHero();
+```
+
+但是，如果我们想要在不使用 class 的情况下实现子类，我们可以这么做：
+
+```
+function Human(name, level) {
+  this.name = name;
+  this.level = level;
+}
+
+function SuperHero(name, level) {
+  Human.call(this, name, level);
+}
+
+Object.setPrototypeOf(SuperHero.prototype, Human.prototype);
+
+// Set the `[[Prototype]]` of `SuperHero.prototype`
+// to `Human.prototype`
+// To set the prototypal inheritance chain
+
+Human.prototype.speak = function () {
+  return `${this.name} says hello.`;
+}
+
+SuperHero.prototype.fly = function () {
+  return `${this.name} is flying.`;
+}
+
+const superMan = new SuperHero('Clark Kent', 1);
+
+console.log(superMan.fly());
+console.log(superMan.speak())
+```
+
+上面的类继承（使用 class）和伪类继承（使用带有 prototype 属性的构造函数）的相似性已在继承与原型链中提到。
+
+在下面的示例中，也使用了类，SuperHero 使用 setPrototypeOf 而不是 extends 来继承 Human。
+
+警告： 由于性能和可读性的原因，不建议使用 setPrototypeOf 来代替 extends。
+
+```
+class Human {}
+class SuperHero {}
+
+// Set the instance properties
+Object.setPrototypeOf(SuperHero.prototype, Human.prototype);
+
+// Hook up the static properties
+Object.setPrototypeOf(SuperHero, Human);
+
+const superMan = new SuperHero();
+```
+
+ES-6 子类派生中提到了不使用 extends 的子类派生方法。
+
+### Object.prototype.toLocaleString()
+
+toLocaleString() 方法返回一个该对象的字符串表示。此方法被用于派生对象为了特定语言环境的目的（locale-specific purposes）而重载使用。
+
+### 语法
+
+obj.toLocaleString();
+
+### 返回值
+
+表示对象的字符串。
+
+### 描述
+
+Object toLocaleString 返回调用 toString() 的结果。
+
+该函数提供给对象一个通用的toLocaleString 方法，即使不是全部都可以使用它。见下面的列表。
+
+### 覆盖 toLocaleString 的对象
+
+- Array：Array.prototype.toLocaleString()
+- Number：Number.prototype.toLocaleString()
+- Date：Date.prototype.toLocaleString()
+
+### Object.prototype.toString()
+
+toString() 方法返回一个表示该对象的字符串。该方法旨在重写（自定义）派生类对象的类型转换的逻辑。
+
+```
+function Dog(name) {
+  this.name = name;
+}
+
+const dog1 = new Dog('Gabby');
+
+Dog.prototype.toString = function dogToString() {
+  return `${this.name}`;
+};
+
+console.log(dog1.toString());
+// Expected output: "Gabby"
+```
+
+### 语法
+
+toString()
+
+### 参数
+
+默认情况下，toString() 不接受任何参数。然而，继承自 Object 的对象可能用它们自己的实现重写它，这些实现可以接受参数。例如，Number.prototype.toString() 和 BigInt.prototype.toString() 方法接受一个可选的 radix 参数。
+
+### 返回值
+
+一个表示该对象的字符串。
+
+### 描述
+
+JavaScript 调用 toString 方法将对象转换为一个原始值。你很少需要自己去调用 toString 方法；当遇到需要原始值的对象时，JavaScript 会自己调用它。
+
+该方法由字符串转换优先调用，但是数字的强制转换和原始值的强制转换会优先调用 valueOf()。然而，因为基本的 valueOf() 方法返回一个对象，toString() 方法通常在结束时调用，除非对象重写了 valueOf()。例如，+[1] 返回 1，因为它的 toString() 方法返回 "1"，然后将其转换为数字。
+
+所有继承自 Object.prototype 的对象（即，除了 null-prototype 对象之外的对象）都继承 toString() 方法。当你创建一个自定义对象时，你可以重写 toString() 以调用自定义方法，以便将自定义对象转换为一个字符串。或者，你可以增加一个 @@toPrimitive 方法，该方法允许对转换过程有更多的控制，并且对于任意的类型转换，且总是优先于 valueOf 或 toString。
+
+要将基本的 Object.prototype.toString() 用于重写的对象（或者在 null 或 undefined 上调用它），你需要在它上面调用 Function.prototype.call() 或者 Function.prototype.apply()，将要检查的对象作为第一个参数传递（称为 thisArg）。
+
+```
+const arr = [1, 2, 3];
+
+arr.toString(); // "1,2,3"
+Object.prototype.toString.call(arr); // "[object Array]"
+```
+
+Object.prototype.toString() 返回 "[object Type]"，这里的 Type 是对象的类型。如果对象有 Symbol.toStringTag 属性，其值是一个字符串，则它的值将被用作 Type。许多内置的对象，包括 Map 和 Symbol，都有 Symbol.toStringTag。一些早于 ES6 的对象没有 Symbol.toStringTag，但仍然有一个特殊的标签。它们包括（标签与下面给出的类型名相同）：
+
+```
+Array
+Function（它的 typeof 返回 "function"）
+Error
+Boolean
+Number
+String
+Date
+RegExp
+```
+
+arguments 对象返回 "[object Arguments]"。其它所有内容，包括用户自定义的类，除非有一个自定义的 Symbol.toStringTag，否则都将返回 "[object Object]"。
+
+在 null 和 undefined 上调用 Object.prototype.toString() 分别返回 [object Null] 和 [object Undefined]。
+
+### 示例
+
+为自定义对象重写 toString
+
+你可以创建一个要调用的函数来代替默认的 toString() 方法。你创建的 toString() 函数应该返回一个字符串值。如果它返回一个对象，并且在类型转换期间隐式调用它，那么忽略它的结果，并使用相关方法 valueOf() 的值，或者这些方法都不返回原始值，则抛出 TypeError。
+
+以下代码定义了 Dog 类。
+
+```
+class Dog {
+  constructor(name, breed, color, sex) {
+    this.name = name;
+    this.breed = breed;
+    this.color = color;
+    this.sex = sex;
+  }
+}
+```
+
+如果你在 Dog 实例上显示或者隐式的调用 toString() 方法，它将返回从 Object 继承的默认值：
+
+```
+const theDog = new Dog("Gabby", "Lab", "chocolate", "female");
+
+theDog.toString(); // "[object Object]"
+`${theDog}`; // "[object Object]"
+```
+
+以下代码重写了默认的 toString() 方法。这个方法生成一个包含该对象的 name、breed、color 和 sex 的字符串。
+
+```
+class Dog {
+  constructor(name, breed, color, sex) {
+    this.name = name;
+    this.breed = breed;
+    this.color = color;
+    this.sex = sex;
+  }
+  toString() {
+    return `Dog ${this.name} is a ${this.sex} ${this.color} ${this.breed}`;
+  }
+}
+```
+
+有了前面的代码，每当 Dog 实例在字符串的上下文中使用，JavaScript 会自动调用 toString() 方法。
+
+```
+const theDog = new Dog("Gabby", "Lab", "chocolate", "female");
+
+`${theDog}`; // "Dog Gabby is a female chocolate Lab"
+```
+
+### 使用 toString() 去检查对象类
+
+toString() 可以与每个对象一起使用，并且（默认情况下）允许你获得它的类。
+
+```
+const toString = Object.prototype.toString;
+
+toString.call(new Date()); // [object Date]
+toString.call(new String()); // [object String]
+// Math has its Symbol.toStringTag
+toString.call(Math); // [object Math]
+
+toString.call(undefined); // [object Undefined]
+toString.call(null); // [object Null]
+```
+
+以这种方式使用 toString() 是不可靠的；对象可以通过定义 Symbol.toStringTag 属性来更改 Object.prototype.toString() 的行为，从而导致意想不到的结果。例如：
+
+```
+const myDate = new Date();
+Object.prototype.toString.call(myDate); // [object Date]
+
+myDate[Symbol.toStringTag] = "myDate";
+Object.prototype.toString.call(myDate); // [object myDate]
+
+Date.prototype[Symbol.toStringTag] = "prototype polluted";
+Object.prototype.toString.call(new Date()); // [object prototype polluted]
+```
+
+### Object.prototype.valueOf()
+
+Object 的 valueOf() 方法将 this 值转换为一个对象。此方法旨在用于自定义类型转换的逻辑时，重写派生类对象。
+
+```
+function MyNumberType(n) {
+  this.number = n;
+}
+
+MyNumberType.prototype.valueOf = function() {
+  return this.number;
+};
+
+const object1 = new MyNumberType(4);
+
+console.log(object1 + 3);
+// Expected output: 7
+```
+
+### 语法
+
+valueOf()
+
+### 参数
+
+无。
+
+### 返回值
+
+this 值，将其转换为一个对象。
+
+备注： 为了使 valueOf 在类型转换期间有用，它必须返回一个原始值。因为所有原始类型都有它们自己的 valueOf() 方法，调用 aPrimitiveValue.valueOf() 通常不会调用 Object.prototype.valueOf()。
+
+### 描述
+
+JavaScript 调用 valueOf 方法将对象转换为一个原始值。你很少需要自己去调用 valueOf 方法；当遇到需要原始值的对象时，JavaScript 会自己调用它。
+
+该方法由数字转换和原始值转换优先调用，但是字符串转换会优先调用 toString()，并且 toString() 非常可能返回一个字符串类型（即使原始实现了 Object.prototype.toString()），所以 valueOf() 在这种情况下通常不会被调用。
+
+所有继承自 Object.prototype 的对象（当然，除了 null-prototype 对象之外）都继承 toString() 方法。对于这些对象，Object.prototype.valueOf() 基本的实现是没有效果的：它返回对象自身，它的返回值将永远不会被任何原始值转换算法使用。许多内置对象返回一个适当的原始值覆盖这个方法。当你创建一个自定义对象，你可以调用一个自定义方法去覆盖 valueOf()，以至于你自定义的对象可以转换为一个原始值。总的来说，valueOf() 用于返回对象最有意义的值——与 toString() 不同，它不需要是字符串。或者，你可以增加一个 @@toPrimitive 方法，该方法允许对转换过程有更多的控制，并且对于任意的类型转换，且总是优先于 valueOf 或 toString。
+
+### 示例
+
+使用 valueOf()
+
+原始的 valueOf() 方法会返回 this 值本身，如果尚未转换为对象，则转换为对象。因此它的返回值将从不会被任何原始值转换算法使用。
+
+```
+const obj = { foo: 1 };
+console.log(obj.valueOf() === obj); // true
+
+console.log(Object.prototype.valueOf.call("primitive"));
+// [String: 'primitive'] (a wrapper object)
+```
+
+### Object.values()
+
+Object.values() 方法返回一个给定对象自身的所有可枚举属性值的数组，值的顺序与使用 for...in 循环的顺序相同（区别在于 for-in 循环枚举原型链中的属性）。
+
+### 语法
+
+Object.values(obj)
+
+### 参数
+
+obj
+被返回可枚举属性值的对象。
+
+### 返回值
+
+一个包含对象自身的所有可枚举属性值的数组。
+
+### 描述
+
+Object.values()返回一个数组，其元素是在对象上找到的可枚举属性值。属性的顺序与通过手动循环对象的属性值所给出的顺序相同。
+
+### 示例
+
+```
+var obj = { foo: 'bar', baz: 42 };
+console.log(Object.values(obj)); // ['bar', 42]
+
+// array like object
+var obj = { 0: 'a', 1: 'b', 2: 'c' };
+console.log(Object.values(obj)); // ['a', 'b', 'c']
+
+// array like object with random key ordering
+// when we use numeric keys, the value returned in a numerical order according to the keys
+var an_obj = { 100: 'a', 2: 'b', 7: 'c' };
+console.log(Object.values(an_obj)); // ['b', 'c', 'a']
+
+// getFoo is property which isn't enumerable
+var my_obj = Object.create({}, { getFoo: { value: function() { return this.foo; } } });
+my_obj.foo = 'bar';
+console.log(Object.values(my_obj)); // ['bar']
+
+// non-object argument will be coerced to an object
+console.log(Object.values('foo')); // ['f', 'o', 'o']
+```
 
 <hr>
 
@@ -3855,3 +4241,18 @@ keyframes.app/animate，使用可视时间轴编辑器创建 CSS @keyframe 动�
 undraw.co，一款国际范的免费开源插图网站
 
 headlessui.com，一款漂亮的UI 组件，可以在使用 Vue 和 React 项目中很方便调用， 并能与Tailwind CSS 完美集成
+
+生成纯CSS模糊动画背景。
+官方网站：https://wweb.dev/resources/animated-css-background-generator/
+
+构建半透明、模糊的玻璃状背景，类似于ui.glass/generator。
+官方网站：https://hype4.academy/tools/glassmorphism-generator
+
+生成支持跨浏览器的纯CSS发光效果。
+官方网站：https://cssbud.com/css-generator/css-glow-generator/
+
+可以通过border-radius属性生成超酷的图形对象，与BlobMaker类似。
+官方网站：https://9elements.github.io/fancy-border-radius/
+
+使用内设的阴影生成Soft-UI CSS样式
+官方网站：https://neumorphism.io/
