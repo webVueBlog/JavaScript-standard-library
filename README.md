@@ -1991,6 +1991,514 @@ Object.isFrozen(1);
 // true                          (ES2015 code)
 ```
 
+### Object.prototype.isPrototypeOf()
+
+isPrototypeOf() 方法用于测试一个对象是否存在于另一个对象的原型链上。
+
+备注： isPrototypeOf() 与 instanceof 运算符不同。在表达式 "object instanceof AFunction"中，object 的原型链是针对 AFunction.prototype 进行检查的，而不是针对 AFunction 本身。
+
+### 语法
+
+prototypeObj.isPrototypeOf(object)
+
+### 参数
+
+object
+在该对象的原型链上搜寻
+
+### 返回值
+
+Boolean，表示调用对象是否在另一个对象的原型链上。
+
+### 报错
+
+TypeError
+如果 prototypeObj 为 undefined 或 null，会抛出 TypeError。
+
+### 描述
+
+isPrototypeOf() 方法允许你检查一个对象是否存在于另一个对象的原型链上。
+
+### 示例
+
+本示例展示了 Baz.prototype, Bar.prototype, Foo.prototype 和 Object.prototype 在 baz 对象的原型链上：
+
+```
+function Foo() {}
+function Bar() {}
+function Baz() {}
+
+Bar.prototype = Object.create(Foo.prototype);
+Baz.prototype = Object.create(Bar.prototype);
+
+var baz = new Baz();
+
+console.log(Baz.prototype.isPrototypeOf(baz)); // true
+console.log(Bar.prototype.isPrototypeOf(baz)); // true
+console.log(Foo.prototype.isPrototypeOf(baz)); // true
+console.log(Object.prototype.isPrototypeOf(baz)); // true
+```
+
+如果你有段代码只在需要操作继承自一个特定的原型链的对象的情况下执行，同 instanceof 操作符一样 isPrototypeOf() 方法就会派上用场，例如，为了确保某些方法或属性将位于对象上。
+
+例如，检查 baz 对象是否继承自 Foo.prototype：
+
+```
+if (Foo.prototype.isPrototypeOf(baz)) {
+  // do something safe
+}
+```
+
+### Object.isSealed()
+
+Object.isSealed() 方法判断一个对象是否被密封。
+
+### 语法
+
+Object.isSealed(obj)
+
+### 参数
+
+obj
+要被检查的对象。
+
+### 返回值
+
+表示给定对象是否被密封的一个Boolean 。
+
+### 描述
+
+如果这个对象是密封的，则返回 true，否则返回 false。密封对象是指那些不可 扩展 的，且所有自身属性都不可配置且因此不可删除（但不一定是不可写）的对象。
+
+### 例子
+
+```
+// 新建的对象默认不是密封的。
+var empty = {};
+Object.isSealed(empty); // === false
+
+// 如果你把一个空对象变的不可扩展，则它同时也会变成个密封对象。
+Object.preventExtensions(empty);
+Object.isSealed(empty); // === true
+
+// 但如果这个对象不是空对象，则它不会变成密封对象，因为密封对象的所有自身属性必须是不可配置的。
+var hasProp = { fee: "fie foe fum" };
+Object.preventExtensions(hasProp);
+Object.isSealed(hasProp); // === false
+
+// 如果把这个属性变的不可配置，则这个属性也就成了密封对象。
+Object.defineProperty(hasProp, 'fee', {
+  configurable: false
+});
+Object.isSealed(hasProp); // === true
+
+// 最简单的方法来生成一个密封对象，当然是使用 Object.seal.
+var sealed = {};
+Object.seal(sealed);
+Object.isSealed(sealed); // === true
+
+// 一个密封对象同时也是不可扩展的。
+Object.isExtensible(sealed); // === false
+
+// 一个密封对象也可以是一个冻结对象，但不是必须的。
+Object.isFrozen(sealed); // === true，所有的属性都是不可写的
+var s2 = Object.seal({ p: 3 });
+Object.isFrozen(s2); // === false，属性"p"可写
+
+var s3 = Object.seal({ get p() { return 0; } });
+Object.isFrozen(s3); // === true，访问器属性不考虑可写不可写，只考虑是否可配置
+```
+
+### 注意
+
+在 ES5 中，如果这个方法的参数不是一个对象（一个原始类型），那么它会导致TypeError。在 ES2015 中，非对象参数将被视为是一个密封的普通对象，只返回true。
+
+```
+Object.isSealed(1);
+// TypeError: 1 is not an object (ES5 code)
+
+Object.isSealed(1);
+// true                          (ES2015 code)
+```
+
+### Object.keys()
+
+Object.keys() 方法会返回一个由一个给定对象的自身可枚举属性组成的数组，数组中属性名的排列顺序和正常循环遍历该对象时返回的顺序一致。
+
+```
+const object1 = {
+  a: 'somestring',
+  b: 42,
+  c: false
+};
+
+console.log(Object.keys(object1));
+// Expected output: Array ["a", "b", "c"]
+```
+
+### 语法
+
+Object.keys(obj)
+
+### 参数
+
+obj
+要返回其枚举自身属性的对象。
+
+### 返回值
+
+一个表示给定对象的所有可枚举属性的字符串数组。
+
+### 描述
+
+Object.keys() 返回一个所有元素为字符串的数组，其元素来自给定的 object 上面可直接枚举的属性。这些属性的顺序与手动遍历该对象属性时的一致。
+
+### 例子
+
+```
+// 简单数组
+const arr = ['a', 'b', 'c'];
+console.log(Object.keys(arr)); // console: ['0', '1', '2']
+
+// 类数组对象
+const obj = { 0: 'a', 1: 'b', 2: 'c' };
+console.log(Object.keys(obj)); // console: ['0', '1', '2']
+
+// 具有随机键顺序的类数组对象
+const anObj = { 100: 'a', 2: 'b', 7: 'c' };
+console.log(Object.keys(anObj)); // console: ['2', '7', '100']
+
+// getFoo 是一个不可枚举的属性
+const myObj = Object.create({}, {
+  getFoo: {
+    value() { return this.foo; }
+  }
+});
+myObj.foo = 1;
+console.log(Object.keys(myObj)); // console: ['foo']
+```
+
+如果你想获取一个对象的所有属性，甚至包括不可枚举的，请查看 Object.getOwnPropertyNames。
+
+### 注意
+
+在 ES5 里，如果此方法的参数不是对象（而是一个原始值），那么它会抛出 TypeError。
+
+在 ES2015 中，非对象的参数将被强制转换为一个对象。
+
+```
+// In ES5
+Object.keys('foo');  // TypeError: "foo" is not an object
+
+// In ES2015+
+Object.keys('foo');  // ["0", "1", "2"]
+```
+
+### Object.preventExtensions()
+
+Object.preventExtensions()方法让一个对象变的不可扩展，也就是永远不能再添加新的属性。
+
+```
+const object1 = {};
+
+Object.preventExtensions(object1);
+
+try {
+  Object.defineProperty(object1, 'property1', {
+    value: 42
+  });
+} catch (e) {
+  console.log(e);
+  // Expected output: TypeError: Cannot define property property1, object is not extensible
+}
+```
+
+### 语法
+
+Object.preventExtensions(obj)
+
+### 参数
+
+obj
+将要变得不可扩展的对象。
+
+### 返回值
+
+已经不可扩展的对象。
+
+### 描述
+
+如果一个对象可以添加新的属性，则这个对象是可扩展的。Object.preventExtensions()将对象标记为不再可扩展，这样它将永远不会具有它被标记为不可扩展时持有的属性之外的属性。注意，一般来说，不可扩展对象的属性可能仍然可被删除。尝试将新属性添加到不可扩展对象将静默失败或抛出TypeError（最常见的情况是strict mode (en-US)中，但不排除其他情况）。
+
+Object.preventExtensions()仅阻止添加自身的属性。但其对象类型的原型依然可以添加新的属性。
+
+该方法使得目标对象的 [[prototype]] 不可变；任何重新赋值 [[prototype]] 操作都会抛出 TypeError 。这种行为只针对内部的 [[prototype]] 属性，目标对象的其它属性将保持可变。
+
+一旦将对象变为不可扩展的对象，就再也不能使其可扩展。
+
+### 例子
+
+```
+// Object.preventExtensions 将原对象变的不可扩展，并且返回原对象。
+var obj = {};
+var obj2 = Object.preventExtensions(obj);
+obj === obj2;  // true
+
+// 字面量方式定义的对象默认是可扩展的。
+var empty = {};
+Object.isExtensible(empty) //=== true
+
+// ...但可以改变。
+Object.preventExtensions(empty);
+Object.isExtensible(empty) //=== false
+
+// 使用 Object.defineProperty 方法为一个不可扩展的对象添加新属性会抛出异常。
+var nonExtensible = { removable: true };
+Object.preventExtensions(nonExtensible);
+Object.defineProperty(nonExtensible, "new", { value: 8675309 }); // 抛出 TypeError 异常
+
+// 在严格模式中，为一个不可扩展对象的新属性赋值会抛出 TypeError 异常。
+function fail()
+{
+  "use strict";
+  nonExtensible.newProperty = "FAIL"; // throws a TypeError
+}
+fail();
+```
+
+### 不可扩展对象的原型是不可变的：
+
+```
+var fixed = Object.preventExtensions({});
+// throws a 'TypeError'.
+fixed.__proto__ = { oh: 'hai' };
+```
+
+### Notes
+
+在 ES5 中，如果参数不是一个对象类型（而是原始类型），将抛出一个TypeError异常。在 ES2015 中，非对象参数将被视为一个不可扩展的普通对象，因此会被直接返回。
+
+```
+Object.preventExtensions(1);
+// TypeError: 1 is not an object (ES5 code)
+
+Object.preventExtensions(1);
+// 1                             (ES2015 code)
+```
+
+### Object.prototype.propertyIsEnumerable()
+
+propertyIsEnumerable() 方法返回一个布尔值，表示指定的属性是否可枚举。
+
+```
+const object1 = {};
+const array1 = [];
+object1.property1 = 42;
+array1[0] = 42;
+
+console.log(object1.propertyIsEnumerable('property1'));
+// Expected output: true
+
+console.log(array1.propertyIsEnumerable(0));
+// Expected output: true
+
+console.log(array1.propertyIsEnumerable('length'));
+// Expected output: false
+```
+
+### 语法
+
+obj.propertyIsEnumerable(prop)
+
+### 参数
+
+prop
+需要测试的属性名。
+
+### 返回值
+
+用来表示指定的属性名是否可枚举的布尔值。
+
+### 描述
+
+每个对象都有一个 propertyIsEnumerable 方法。此方法可以确定对象中指定的属性是否可以被 for...in 循环枚举，但是通过原型链继承的属性除外。如果对象没有指定的属性，则此方法返回 false。
+
+### 例子
+
+propertyIsEnumerable 方法的基本用法
+
+下面的例子演示了 propertyIsEnumerable 方法在普通对象和数组上的基本用法：
+
+```
+var o = {};
+var a = [];
+o.prop = 'is enumerable';
+a[0] = 'is enumerable';
+
+o.propertyIsEnumerable('prop'); // 返回 true
+a.propertyIsEnumerable(0);      // 返回 true
+```
+
+### 用户自定义对象和内置对象
+
+下面的例子演示了用户自定义对象和内置对象上属性可枚举性的区别。
+
+```
+var a = ['is enumerable'];
+
+a.propertyIsEnumerable(0);        // 返回 true
+a.propertyIsEnumerable('length'); // 返回 false
+
+Math.propertyIsEnumerable('random'); // 返回 false
+this.propertyIsEnumerable('Math');   // 返回 false
+```
+
+### 自身属性和继承属性
+
+```
+var a = [];
+a.propertyIsEnumerable('constructor'); // 返回 false
+
+function firstConstructor() {
+  this.property = 'is not enumerable';
+}
+
+firstConstructor.prototype.firstMethod = function() {};
+
+function secondConstructor() {
+  this.method = function method() { return 'is enumerable'; };
+}
+
+secondConstructor.prototype = new firstConstructor;
+secondConstructor.prototype.constructor = secondConstructor;
+
+var o = new secondConstructor();
+o.arbitraryProperty = 'is enumerable';
+
+o.propertyIsEnumerable('arbitraryProperty'); // 返回 true
+o.propertyIsEnumerable('method');            // 返回 true
+o.propertyIsEnumerable('property');          // 返回 false
+
+o.property = 'is enumerable';
+
+o.propertyIsEnumerable('property');          // 返回 true
+
+// 之所以这些会返回 false，是因为，在原型链上 propertyIsEnumerable 不被考虑
+// (尽管最后两个在 for-in 循环中可以被循环出来)。
+o.propertyIsEnumerable('prototype');   // 返回 false (根据 JS 1.8.1/FF3.6)
+o.propertyIsEnumerable('constructor'); // 返回 false
+o.propertyIsEnumerable('firstMethod'); // 返回 false
+```
+
+### Object.seal()
+
+Object.seal() 方法封闭一个对象，阻止添加新属性并将所有现有属性标记为不可配置。当前属性的值只要原来是可写的就可以改变。
+
+```
+const object1 = {
+  property1: 42
+};
+
+Object.seal(object1);
+object1.property1 = 33;
+console.log(object1.property1);
+// Expected output: 33
+
+delete object1.property1; // Cannot delete when sealed
+console.log(object1.property1);
+// Expected output: 33
+```
+
+### 语法
+
+Object.seal(obj)
+
+### 参数
+
+obj
+将要被密封的对象。
+
+### 返回值
+
+被密封的对象。
+
+### 描述
+
+通常，一个对象是可扩展的（可以添加新的属性）。密封一个对象会让这个对象变的不能添加新属性，且所有已有属性会变的不可配置。属性不可配置的效果就是属性变的不可删除，以及一个数据属性不能被重新定义成为访问器属性，或者反之。但属性的值仍然可以修改。尝试删除一个密封对象的属性或者将某个密封对象的属性从数据属性转换成访问器属性，结果会静默失败或抛出TypeError（在严格模式 中最常见的，但不唯一）。
+
+不会影响从原型链上继承的属性。但 Object.prototype.__proto__ ( 已弃用 ) 属性的值也会不能修改。
+
+返回被密封对象的引用。
+
+### 例子
+
+```
+var obj = {
+  prop: function() {},
+  foo: 'bar'
+};
+
+// 可以添加新的属性
+// 可以更改或删除现有的属性
+obj.foo = 'baz';
+obj.lumpy = 'woof';
+delete obj.prop;
+
+var o = Object.seal(obj);
+
+o === obj; // true
+Object.isSealed(obj); // === true
+
+// 仍然可以修改密封对象的属性值
+obj.foo = 'quux';
+
+
+// 但是你不能将属性重新定义成为访问器属性
+// 反之亦然
+Object.defineProperty(obj, 'foo', {
+  get: function() { return 'g'; }
+}); // throws a TypeError
+
+// 除了属性值以外的任何变化，都会失败。
+obj.quaxxor = 'the friendly duck';
+// 添加属性将会失败
+delete obj.foo;
+// 删除属性将会失败
+
+// 在严格模式下，这样的尝试将会抛出错误
+function fail() {
+  'use strict';
+  delete obj.foo; // throws a TypeError
+  obj.sparky = 'arf'; // throws a TypeError
+}
+fail();
+
+// 通过 Object.defineProperty 添加属性将会报错
+Object.defineProperty(obj, 'ohai', {
+  value: 17
+}); // throws a TypeError
+Object.defineProperty(obj, 'foo', {
+  value: 'eit'
+}); // 通过 Object.defineProperty 修改属性值
+```
+
+### 注意
+
+在 ES5 中，如果这个方法的参数不是一个（原始）对象，那么它将导致TypeError。在 ES2015 中，非对象参数将被视为已被密封的普通对象，会直接返回它。
+
+```
+Object.seal(1);
+// TypeError: 1 is not an object (ES5 code)
+
+Object.seal(1);
+// 1                             (ES2015 code)
+```
+
+### 对比 Object.freeze()
+
+使用Object.freeze()冻结的对象中的现有属性值是不可变的。用Object.seal()密封的对象可以改变其现有属性值。
+
+
 <hr>
 
 ## Object
@@ -3334,9 +3842,16 @@ const fruitsCopy3 = fruits.slice();
 // ["Strawberry", "Mango"]
 ```
 
+# 收集与分享
 
+excalidraw.com，一个在线的手绘白板工具
 
+www.grabient.com，很棒的 UI 工具，用于生成线性渐变色。
 
+shadows.brumm.af，你可以设置模糊、透明度、位置和其他参数设置阴影，帮我们生成阴影代码。
 
+keyframes.app/animate，使用可视时间轴编辑器创建 CSS @keyframe 动画。
 
+undraw.co，一款国际范的免费开源插图网站
 
+headlessui.com，一款漂亮的UI 组件，可以在使用 Vue 和 React 项目中很方便调用， 并能与Tailwind CSS 完美集成
