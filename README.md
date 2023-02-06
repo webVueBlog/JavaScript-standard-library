@@ -6,6 +6,434 @@ https://webvueblog.github.io/JavaScript-standard-library/
 
 <img width="300px" src="https://user-images.githubusercontent.com/59645426/187019807-7785b3c9-9931-4bca-a28f-5e508a4c9839.jpg"/>
 
+## 画图
+
+要在网页中创建 2D 或者 3D 场景，必须在 HTML 文件中插入一个 <canvas> 元素，以界定网页中的绘图区域。这很简单，如下所示：
+
+```
+<canvas width="320" height="240"></canvas>
+```
+
+不明确指定宽高时，画布默认尺寸为 300 × 150 像素。
+
+画布模板设置还有最后一步。我们需要获得一个对绘画区域的特殊的引用（称为“上下文”）用来在画布上绘图。可通过 HTMLCanvasElement.getContext() 方法获得基础的绘画功能，需要提供一个字符串参数来表示所需上下文的类型。
+
+这里我们需要一个 2d 画布，在 `<script>` 元素内添加以下 JS 代码即可：
+
+```
+var ctx = canvas.getContext('2d');
+```
+
+好啦，现已万事具备！ctx 变量包含一个 CanvasRenderingContext2D 对象，画布上所有绘画操作都会涉及到这个对象。
+
+开始前我们先初尝一下 canvas API。在 JS 代码中添加以下两行，将画布背景涂成黑色：
+
+```
+ctx.fillStyle = 'rgb(0, 0, 0)';
+ctx.fillRect(0, 0, width, height);
+```
+
+这里我们使用画布的 fillStyle 属性（和 CSS 属性 色值 一致）设置填充色，然后使用 fillRect 方法绘制一个覆盖整个区域的矩形（前两个参数是矩形左上顶点的坐标，后两个参数是矩形的长宽，现在你知道 width 和 height 的作用了吧）。
+
+### 2D 画布基础
+
+如上文所讲，所有绘画操作都离不开 CanvasRenderingContext2D 对象（这里叫做 ctx）。许多操作都需要提供坐标来指示绘图的确切位置。画布左上角的坐标是 (0, 0)，横坐标（x）轴向右延伸，纵坐标（y）轴向下延伸。
+
+![image](https://user-images.githubusercontent.com/59645426/216849521-056e4e2a-b4ac-4d32-9f99-c1d4c01e170c.png)
+
+绘图操作可基于原始矩形模型实现，也可通过追踪一个特定路径后填充颜色实现。下面分别讲解。
+
+### 描边（stroke）和线条宽度
+
+目前我们绘制的矩形都是填充颜色的，我们也可以绘制仅包含外部框线（图形设计中称为描边）的矩形。你可以使用 strokeStyle 属性来设置描边颜色，使用 strokeRect 来绘制一个矩形的轮廓。
+
+在上文的 JS 代码的末尾添加以下代码：
+
+```
+ctx.strokeStyle = 'rgb(255, 255, 255)';
+ctx.strokeRect(25, 25, 175, 200);
+```
+
+默认的描边宽度是 1 像素，可以通过调整 lineWidth 属性（接受一个表示描边宽度像素值的数字）的值来修改。在上文两行后添加以下代码（读者注：此代码要放到两行代码中间才有效）：
+
+```
+ctx.lineWidth = 5;
+```
+
+### 绘制路径
+
+可以通过绘制路径来绘制比矩形更复杂的图形。路径中至少要包含钢笔运行精确路径的代码以确定图形的形状。画布提供了许多函数用来绘制直线、圆、贝塞尔曲线，等等。
+
+重新复制一份（1_canvas_template.html），然后在其中绘制新的示例。
+
+一些通用的方法和属性将贯穿以下全部内容：
+
+      beginPath()：在钢笔当前所在位置开始绘制一条路径。在新的画布中，钢笔起始位置为 (0, 0)。
+      moveTo()：将钢笔移动至另一个坐标点，不记录、不留痕迹，只将钢笔“跳”至新位置。
+      fill()：通过为当前所绘制路径的区域填充颜色来绘制一个新的填充形状。
+      stroke()：通过为当前绘制路径的区域描边，来绘制一个只有边框的形状。
+      路径也可和矩形一样使用 lineWidth 和 fillStyle / strokeStyle 等功能。
+
+以下是一个典型的简单路径绘制选项：
+
+```
+ctx.fillStyle = 'rgb(255, 0, 0)';
+ctx.beginPath();
+ctx.moveTo(50, 50);
+// 绘制路径
+ctx.fill();
+```
+
+### 画圆
+
+下面来看可在画布中绘制圆的方法—— arc() ，通过连续的点来绘制整个圆或者弧（arc，即局部的圆）。
+
+在代码中添加以下几行，以向画布中添加一条弧。
+
+```
+ctx.fillStyle = 'rgb(0, 0, 255)';
+ctx.beginPath();
+ctx.arc(150, 106, 50, degToRad(0), degToRad(360), false);
+ctx.fill();
+```
+
+arc() 函数有六个参数。前两个指定圆心的位置坐标，第三个是圆的半径，第四、五个是绘制弧的起、止角度（给定 0° 和 360° 便能绘制一个完整的圆），第六个是绘制方向（false 是顺时针，true 是逆时针）。
+
+我们再来画一条弧：
+
+```
+ctx.fillStyle = 'yellow';
+ctx.beginPath();
+ctx.arc(200, 106, 50, degToRad(-45), degToRad(45), true);
+ctx.lineTo(200, 106);
+ctx.fill();
+```
+
+### 文本
+
+画布可用于绘制文本。
+
+以下两个函数用于绘制文本：
+
+- fillText() ：绘制有填充色的文本。
+- strokeText()：绘制文本外边框（描边）。
+
+在 JS 代码底部添加以下内容：
+
+```
+ctx.strokeStyle = 'white';
+ctx.lineWidth = 1;
+ctx.font = '36px arial';
+ctx.strokeText('Canvas text', 50, 50);
+
+ctx.fillStyle = 'red';
+ctx.font = '48px georgia';
+ctx.fillText('Canvas text', 50, 150);
+```
+
+### 在画布上绘制图片
+
+可在画布上渲染外部图片，简单图片文件、视频帧、其他画布内容都可以。这里我们只考虑简单图片文件的情况：
+
+将图片源嵌入画布中，代码如下：
+
+```
+var image = new Image();
+image.src = 'firefox.png';
+```
+
+这次我们尝试用 drawImage() 函数来嵌入图片，应确保图片先载入完毕，否则运行会出错。可以通过 onload 事件处理器来达成，该函数只在图片调用完毕后才会调用。在上文代码末尾添加以下内容：
+
+```
+image.onload = function() {
+  ctx.drawImage(image, 50, 50);
+}
+```
+
+保存刷新，可以看到图片成功嵌入画布中。
+
+还有更多方式。如果仅需要显示图片的某一部分，或者需要改变尺寸，该怎么做呢？复杂版本的 drawImage() 可解决这两个问题。请更新 ctx.drawImage() 一行代码为：
+
+```
+ctx.drawImage(image, 20, 20, 185, 175, 50, 50, 185, 175);
+```
+
+      第一个参数不变，为图片引用。
+      参数 2、3 表示裁切部分左上顶点的坐标，参考原点为原图片本身左上角的坐标。原图片在该坐标左、上的部分均不会绘制出来。
+      参数 4、5 表示裁切部分的长、宽。
+      参数 6、7 表示裁切部分左上顶点在画布中的位置坐标，参考原点为画布左上顶点。
+      参数 8、9 表示裁切部分在画布中绘制的长、宽。本例中绘制时与裁切时面积相同，你也可以定制绘制的尺寸。
+
+### 动画
+
+一些 JavaScript 函数可以让函数在一秒内重复运行多次，这里最适合的就是 window.requestAnimationFrame()。它只取一个参数，即每帧要运行的函数名。下一次浏览器准备好更新屏幕时，将会调用你的函数。如果你的函数向动画中绘制了更新内容，则在函数结束前再次调用 requestAnimationFrame()，动画循环得以保留。只有在停止调用 requestAnimationFrame() 时，或 requestAnimationFrame() 调用后、帧调用前调用了 window.cancelAnimationFrame() 时，循环才会停止。
+
+浏览器自行处理诸如“使动画匀速运行”、“避免在不可见的内容浪费资源”等复杂细节问题。
+
+### 从服务器获取数据
+
+```
+const request = new XMLHttpRequest();
+
+try {
+  request.open('GET', 'products.json');
+
+  request.responseType = 'json';
+
+  request.addEventListener('load', () => initialize(request.response));
+  request.addEventListener('error', () => console.error('XHR error'));
+
+  request.send();
+
+} catch (error) {
+  console.error(`XHR error ${request.status}`);
+}
+```
+
+### 操作文档
+
+window 是载入浏览器的标签，在 JavaScript 中用Window对象来表示，使用这个对象的可用方法，你可以返回窗口的大小（参见Window.innerWidth和Window.innerHeight），操作载入窗口的文档，存储客户端上文档的特殊数据（例如使用本地数据库或其他存储设备），为当前窗口绑定event handler，等等。
+
+navigator 表示浏览器存在于 web 上的状态和标识（即用户代理）。在 JavaScript 中，用Navigator来表示。你可以用这个对象获取一些信息，比如来自用户摄像头的地理信息、用户偏爱的语言、多媒体流等等。
+
+document（在浏览器中用 DOM 表示）是载入窗口的实际页面，在 JavaScript 中用Document 对象表示，你可以用这个对象来返回和操作文档中 HTML 和 CSS 上的信息。例如获取 DOM 中一个元素的引用，修改其文本内容，并应用新的样式，创建新的元素并添加为当前元素的子元素，甚至把他们一起删除。
+
+### 文档对象模型
+
+      元素节点: 一个元素，存在于 DOM 中。
+      根节点: 树中顶层节点，在 HTML 的情况下，总是一个HTML节点（其他标记词汇，如 SVG 和定制 XML 将有不同的根元素）。
+      子节点: 直接位于另一个节点内的节点。例如上面例子中，IMG是SECTION的子节点。
+      后代节点: 位于另一个节点内任意位置的节点。例如 上面例子中，IMG是SECTION的子节点，也是一个后代节点。IMG不是BODY的子节点，因为它在树中低了BODY两级，但它是BODY的后代之一。
+      父节点: 里面有另一个节点的节点。例如上面的例子中BODY是SECTION的父节点。
+      兄弟节点: DOM 树中位于同一等级的节点。例如上面例子中，IMG和P是兄弟。
+      文本节点: 包含文字串的节点
+
+### 移动和删除元素
+
+也许有时候你想移动或从 DOM 中删除节点，这是完全可能的。
+
+如果你想把具有内部链接的段落移到 sectioin 的底部，简单的做法是：
+
+```
+sect.appendChild(linkPara);
+```
+
+这样可以把段落下移到 section 的底部。你可能想过要做第二个副本，但是情况并非如此 — linkPara是指向该段落唯一副本的引用。如果你想做一个副本并也把它添加进去，只能用Node.cloneNode() 方法来替代。
+
+删除节点也非常的简单，至少，你拥有要删除的节点和其父节点的引用。在当前情况下，我们只要使用Node.removeChild()即可，如下：
+
+```
+sect.removeChild(linkPara);
+```
+
+要删除一个仅基于自身引用的节点可能稍微有点复杂，这也是很常见的。没有方法会告诉节点删除自己，所以你必须像下面这样操作。
+
+```
+linkPara.parentNode.removeChild(linkPara);
+```
+
+### 操作样式
+
+通过 JavaScript 以不同的方式来操作 CSS 样式是可能的。
+
+首先，使用 Document.stylesheets返回CSSStyleSheet数组，获取绑定到文档的所有样式表的序列。然后添加/删除想要的样式。然而，我们并不想扩展这些特性，因此它们在操作样式方面有点陈旧和困难，而现在有了更容易的方法。
+
+第一种方法是直接在想要动态设置样式的元素内部添加内联样式。这是用HTMLElement.style (en-US)属性来实现。这个属性包含了文档中每个元素的内联样式信息。你可以设置这个对象的属性直接修改元素样式。
+
+要做个例子，把下面的代码行加到我们的例子中：
+
+```
+para.style.color = 'white';
+para.style.backgroundColor = 'black';
+para.style.padding = '10px';
+para.style.width = '250px';
+para.style.textAlign = 'center';
+```
+
+重新载入页面，你将看到样式已经应用到段落中。如果在浏览器的Page Inspector/DOM inspector中查看段落，你会看到这些代码的确为文档添加了内联样式：
+
+```
+<p style="color: white; background-color: black; padding: 10px; width: 250px; text-align: center;">We hope you enjoyed the ride.</p>
+```
+
+<hr>
+
+## 视频和音频 API
+
+HTML5 提供了用于在文档中嵌入富媒体的元素 — <video>和<audio> — 这些元素通过自带的 API 来控制视频或音频的播放，定位进度等。本文将向你展示如何执行一些常见的任务，如创建自定义播放控件。
+
+### HTML5 视频和音频
+
+<video>和<audio>元素允许我们把视频和音频嵌入到网页当中。就像我们在音频和视频内容文中展示的一样，一个典型的实现如下所示：
+
+```
+<video controls>
+  <source src="rabbit320.mp4" type="video/mp4">
+  <source src="rabbit320.webm" type="video/webm">
+  <p>Your browser doesn't support HTML5 video. Here is a <a href="rabbit320.mp4">link to the video</a> instead.</p>
+</video>
+```
+
+### HTMLMediaElement API
+
+作为 HTML5 规范的一部分，HTMLMediaElement API 提供允许你以编程方式来控制视频和音频播放的功能—例如 HTMLMediaElement.play(), HTMLMediaElement.pause(),等。该接口对<audio>和<video>两个元素都是可用的，因为在这两个元素中要实现的功能几乎是相同的。让我们通过一个例子来一步步演示一些功能。
+
+### 探索 HTML
+
+打开 HTML index 文件。你将看到一些功能；HTML 由视频播放器和它的控件所控制：
+
+```
+<div class="player">
+  <video controls>
+    <source src="video/sintel-short.mp4" type="video/mp4">
+    <source src="video/sintel-short.mp4" type="video/webm">
+    <!-- fallback content here -->
+  </video>
+  <div class="controls">
+    <button class="play" data-icon="P" aria-label="play pause toggle"></button>
+    <button class="stop" data-icon="S" aria-label="stop"></button>
+    <div class="timer">
+      <div></div>
+      <span aria-label="timer">00:00</span>
+    </div>
+    <button class="rwd" data-icon="B" aria-label="rewind"></button>
+    <button class="fwd" data-icon="F" aria-label="fast forward"></button>
+  </div>
+</div>
+```
+
+我们从设置为hidden的自定义控件visibility开始。稍后在我们的 JavaScript 中，我们将控件设置为 visible, 并且从<video> 元素中移除controls 属性。这是因为，如果 JavaScript 由于某种原因没有加载，用户依然可以使用原生的控件播放视频。
+
+默认情况下，我们将控件的opacity设置为 0.5 opacity，这样当您尝试观看视频时，它们就不会分散注意力。只有当您将鼠标悬停/聚焦在播放器上时，控件才会完全不透明。
+
+我们使用 Flexbox(display: flex) 布置控制栏内的按钮，以简化操作。
+
+按钮图标：
+
+```
+@font-face {
+   font-family: 'HeydingsControlsRegular';
+   src: url('fonts/heydings_controls-webfont.eot');
+   src: url('fonts/heydings_controls-webfont.eot?#iefix') format('embedded-opentype'),
+        url('fonts/heydings_controls-webfont.woff') format('woff'),
+        url('fonts/heydings_controls-webfont.ttf') format('truetype');
+   font-weight: normal;
+   font-style: normal;
+}
+
+button:before {
+  font-family: HeydingsControlsRegular;
+  font-size: 20px;
+  position: relative;
+  content: attr(data-icon);
+  color: #aaa;
+  text-shadow: 1px 1px 0px black;
+}
+```
+
+首先在 CSS 的最上方我们使用 @font-face 块来导入自定义 Web 字体。这是一种图标字体 —— 字母表中的所有字符都是各种常用图标，你可以尝试在程序中调用。
+
+我们使用 ::before 选择器在每个 <button> 元素之前显示内容。
+
+我们使用 content 属性将各情况下要显示的内容设置为 data-icon 属性的内容。例如在播放按钮的情况下，data-icon 包含大写的“P”。
+
+我们使用 font-family 将自定义 Web 字体应用于我们的按钮上。在该字体中“P”对应的是“播放”图标，因此播放按钮上显示“播放”图标。
+
+图标字体非常酷有很多原因 —— 减少 HTTP 请求，因为您不需要将这些图标作为图像文件下载。同时具有出色的可扩展性，以及您可以使用文本属性来设置它们的样式 —— 例如 color 和 text-shadow。
+
+### 播放和暂停视频
+
+让我们实现或许是最重要的控制——播放/暂停按钮。
+
+首先，将以下内容添加到您代码的底部，以便于在单击播放按钮时调用 playPauseMedia()函数：
+
+```
+play.addEventListener('click', playPauseMedia);
+```
+
+现在定义 playPauseMedia() 函数——再次添加以下内容到您代码底部：
+
+```
+function playPauseMedia() {
+  if(media.paused) {
+    play.setAttribute('data-icon','u');
+    media.play();
+  } else {
+    play.setAttribute('data-icon','P');
+    media.pause();
+  }
+}
+```
+
+我们使用 if 语句来检查视频是否暂停。如果视频已暂停，HTMLMediaElement.paused 属性将返回 true，任何视频没有播放的时间，包括第一次加载时处于 0 的时间段都是视频暂停状态。如果已暂停，我们把 play 按钮的 data-icon 属性值设置成"u", 用以表示 "暂停" 按钮图标，并且调用HTMLMediaElement.play() 函数播放视频。 点击第二次，按钮将会切换回去——"播放"按钮图标将会再次显示，并且视频将会被HTMLMediaElement.paused() 函数暂停。
+
+### 暂停视频
+
+接下来，让我们添加处理视频停止的方法。添加以下的 addEventListener() 行在你之前添加的内容的下面：
+
+```
+stop.addEventListener('click', stopMedia);
+media.addEventListener('ended', stopMedia);
+```
+
+click 事件很明显——我们想要在点击停止按钮的时候停止视频通过运行我们的 stopMedia() 函数。然而我们也希望停止视频当视频播放完成时——由ended 事件标记，所以我们也会设置一个监听器在此事件触发时运行函数。
+
+接下来，让我们定义 stopMedia()—— 在 playPauseMedia() 后面添加以下函数：
+
+```
+function stopMedia() {
+  media.pause();
+  media.currentTime = 0;
+  play.setAttribute('data-icon','P');
+}
+```
+
+### 探索快进和快退
+
+首先，在前面的代码之下添加以下两个addEventListener()：
+
+```
+rwd.addEventListener('click', mediaBackward);
+fwd.addEventListener('click', mediaForward);
+```
+
+```
+var intervalFwd;
+var intervalRwd;
+
+function mediaBackward() {
+  clearInterval(intervalFwd);
+  fwd.classList.remove('active');
+
+  if(rwd.classList.contains('active')) {
+    rwd.classList.remove('active');
+    clearInterval(intervalRwd);
+    media.play();
+  } else {
+    rwd.classList.add('active');
+    media.pause();
+    intervalRwd = setInterval(windBackward, 200);
+  }
+}
+
+function mediaForward() {
+  clearInterval(intervalRwd);
+  rwd.classList.remove('active');
+
+  if(fwd.classList.contains('active')) {
+    fwd.classList.remove('active');
+    clearInterval(intervalFwd);
+    media.play();
+  } else {
+    fwd.classList.add('active');
+    media.pause();
+    intervalFwd = setInterval(windForward, 200);
+  }
+}
+```
+
+<hr>
+
 ## 客户端存储
 
 现代 web 浏览器提供了很多在用户电脑 web 客户端存放数据的方法 — 只要用户的允许 — 可以在它需要的时候被重新获得。这样能让你存留的数据长时间保存，保存站点和文档在离线情况下使用，保留你对其站点的个性化配置等等。本篇文章只解释它们工作的一些很基础的部分。
