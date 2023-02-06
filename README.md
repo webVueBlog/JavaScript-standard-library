@@ -8,7 +8,7 @@ https://webvueblog.github.io/JavaScript-standard-library/
 
 ## 画图
 
-要在网页中创建 2D 或者 3D 场景，必须在 HTML 文件中插入一个 <canvas> 元素，以界定网页中的绘图区域。这很简单，如下所示：
+要在网页中创建 2D 或者 3D 场景，必须在 HTML 文件中插入一个 `<canvas>` 元素，以界定网页中的绘图区域。这很简单，如下所示：
 
 ```
 <canvas width="320" height="240"></canvas>
