@@ -260,11 +260,11 @@ para.style.textAlign = 'center';
 
 ## 视频和音频 API
 
-HTML5 提供了用于在文档中嵌入富媒体的元素 — <video>和<audio> — 这些元素通过自带的 API 来控制视频或音频的播放，定位进度等。本文将向你展示如何执行一些常见的任务，如创建自定义播放控件。
+HTML5 提供了用于在文档中嵌入富媒体的元素 — `<video>和<audio>` — 这些元素通过自带的 API 来控制视频或音频的播放，定位进度等。本文将向你展示如何执行一些常见的任务，如创建自定义播放控件。
 
 ### HTML5 视频和音频
 
-<video>和<audio>元素允许我们把视频和音频嵌入到网页当中。就像我们在音频和视频内容文中展示的一样，一个典型的实现如下所示：
+`<video>和<audio>`元素允许我们把视频和音频嵌入到网页当中。就像我们在音频和视频内容文中展示的一样，一个典型的实现如下所示：
 
 ```
 <video controls>
@@ -276,7 +276,7 @@ HTML5 提供了用于在文档中嵌入富媒体的元素 — <video>和<audio> 
 
 ### HTMLMediaElement API
 
-作为 HTML5 规范的一部分，HTMLMediaElement API 提供允许你以编程方式来控制视频和音频播放的功能—例如 HTMLMediaElement.play(), HTMLMediaElement.pause(),等。该接口对<audio>和<video>两个元素都是可用的，因为在这两个元素中要实现的功能几乎是相同的。让我们通过一个例子来一步步演示一些功能。
+作为 HTML5 规范的一部分，HTMLMediaElement API 提供允许你以编程方式来控制视频和音频播放的功能—例如 HTMLMediaElement.play(), HTMLMediaElement.pause(),等。该接口对`<audio>和<video>`两个元素都是可用的，因为在这两个元素中要实现的功能几乎是相同的。让我们通过一个例子来一步步演示一些功能。
 
 ### 探索 HTML
 
